@@ -1,0 +1,10 @@
+﻿tabla,filas,columnas,celdas_nulas,filas_duplicadas_exactas
+clientes,99441,5,0,0
+geolocalizacion,1000163,5,0,261831
+detalles,112650,7,0,0
+pagos,103886,5,0,0
+opiniones,99224,7,145903,0
+pedidos,99441,8,4908,0
+productos,32951,9,2448,0
+vendedores,3095,4,0,0
+categorias,71,2,0,0

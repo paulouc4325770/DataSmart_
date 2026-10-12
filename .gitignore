@@ -1,0 +1,52 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datasets
+data/raw/
+data/processed/
+data/external/
+
+# Modelos entrenados
+*.pkl
+*.joblib
+*.h5
+
+# Credenciales
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Datasets originales
+data/raw/
+data/processed/
+data/external/
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Credenciales
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+frontend/dist/
+
