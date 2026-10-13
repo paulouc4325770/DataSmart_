@@ -1,0 +1,26 @@
+{
+  "name": "datasmart-frontend",
+  "version": "1.0.0",
+  "description": "DataSmart — Plataforma inteligente para el análisis, segmentación y predicción de clientes (Olist E-Commerce Dataset)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --open",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "serve:py": "python server.py"
+  },
+  "keywords": [
+    "data-mining",
+    "crisp-dm",
+    "olist",
+    "e-commerce",
+    "analytics",
+    "rfm",
+    "unmsm"
+  ],
+  "author": "DataSmart Engineering Team — UNMSM FISI",
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
