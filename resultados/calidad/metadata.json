@@ -1,0 +1,28 @@
+{
+  "archivo_origen": "archive.zip",
+  "sha256_origen": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
+  "ejecutado_en_utc": "2026-11-08T04:40:23.419616+00:00",
+  "python": "3.13.5",
+  "pandas": "2.3.3",
+  "tablas_origen": 9,
+  "campos_origen": 52,
+  "filas_origen": {
+    "clientes": 99441,
+    "geolocalizacion": 1000163,
+    "detalles": 112650,
+    "pagos": 103886,
+    "opiniones": 99224,
+    "pedidos": 99441,
+    "productos": 32951,
+    "vendedores": 3095,
+    "categorias": 71
+  },
+  "filas_salida": {
+    "pedidos_procesados": 99441,
+    "items_procesados": 112650,
+    "geolocalizacion_agrupada": 19015
+  },
+  "controles_ok": 50,
+  "controles_error": 0,
+  "definicion_puntualidad": "fecha real normalizada > fecha prometida normalizada"
+}

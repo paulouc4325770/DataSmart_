@@ -1,0 +1,87 @@
+﻿tabla,columna,descripcion,tipo,unidad,es_derivada,permite_nulos,nulos_observados,formula_o_fuente,disponibilidad,uso_recomendado
+pedidos_procesados,order_id,Clave primaria del pedido.,string,identificador,False,False,0,pedidos.order_id; unión por claves validadas,compra,identificador
+pedidos_procesados,customer_id,Referencia al registro transaccional del cliente.,string,identificador,False,False,0,pedidos.customer_id; unión por claves validadas,compra,identificador
+pedidos_procesados,order_status,Estado del pedido observado en el corte del dataset.,string,categoría,False,False,0,pedidos.order_status; unión por claves validadas,post_evento,resultado_no_predictor
+pedidos_procesados,order_purchase_timestamp,Fecha y hora de compra.,datetime64[ns],fecha y hora,False,False,0,pedidos.order_purchase_timestamp; unión por claves validadas,compra,descriptor
+pedidos_procesados,order_approved_at,Fecha y hora de aprobación del pago.,datetime64[ns],fecha y hora,False,True,160,pedidos.order_approved_at; unión por claves validadas,pago,descriptor
+pedidos_procesados,order_delivered_carrier_date,Fecha y hora de despacho al transportista.,datetime64[ns],fecha y hora,False,True,1783,pedidos.order_delivered_carrier_date; unión por claves validadas,operacion,descriptor
+pedidos_procesados,order_delivered_customer_date,Fecha y hora real de entrega al cliente.,datetime64[ns],fecha y hora,False,True,2965,pedidos.order_delivered_customer_date; unión por claves validadas,post_evento,resultado_no_predictor
+pedidos_procesados,order_estimated_delivery_date,Fecha de entrega prometida.,datetime64[ns],fecha y hora,False,True,0,pedidos.order_estimated_delivery_date; unión por claves validadas,compra,descriptor
+pedidos_procesados,customer_unique_id,Identificador del comprador para agrupar sus pedidos.,string,identificador,False,False,0,clientes.customer_unique_id; unión por claves validadas,compra,identificador
+pedidos_procesados,customer_zip_code_prefix,"Prefijo postal del cliente, normalizado a cinco dígitos.",string,prefijo postal,False,True,0,clientes.customer_zip_code_prefix; unión por claves validadas,compra,identificador
+pedidos_procesados,customer_city,Ciudad registrada del cliente.,string,texto,False,True,0,clientes.customer_city; unión por claves validadas,compra,descriptor
+pedidos_procesados,customer_state,Estado brasileño del cliente.,string,UF,False,True,0,clientes.customer_state; unión por claves validadas,compra,descriptor
+pedidos_procesados,customer_lat,Latitud mediana del prefijo del cliente.,Float64,grados decimales,True,True,278,geolocalizacion_agrupada.latitud_mediana,catalogo,candidato_predictor
+pedidos_procesados,customer_lng,Longitud mediana del prefijo del cliente.,Float64,grados decimales,True,True,278,geolocalizacion_agrupada.longitud_mediana,catalogo,candidato_predictor
+pedidos_procesados,cantidad_items,Número de filas de ítem en el pedido.,Int64,ítems,True,False,0,size por order_id; 0 sin ítems,compra,candidato_predictor
+pedidos_procesados,cantidad_productos,Productos distintos en el pedido.,Int64,productos,True,False,0,nunique(product_id) por order_id; 0 sin ítems,compra,candidato_predictor
+pedidos_procesados,cantidad_vendedores,Vendedores distintos en el pedido.,Int64,vendedores,True,False,0,nunique(seller_id) por order_id; 0 sin ítems,compra,candidato_predictor
+pedidos_procesados,valor_articulos,Suma de precios de ítems; nulo si no existen ítems.,Float64,BRL,True,True,775,"sum(price, min_count=1) por order_id",compra,candidato_predictor
+pedidos_procesados,valor_flete,Suma de fletes de ítems; nulo si no existen ítems.,Float64,BRL,True,True,775,"sum(freight_value, min_count=1) por order_id",compra,candidato_predictor
+pedidos_procesados,cantidad_registros_pago,Número de registros de pago.,Int64,registros,True,False,0,size por order_id; 0 sin pagos,pago,auditoria
+pedidos_procesados,cuotas_cero,Algún pago tiene cero cuotas; no se imputa.,boolean,booleano,True,True,1,any(payment_installments == 0) por order_id,pago,auditoria
+pedidos_procesados,valor_pagado,Suma de registros de pago; nulo si no hay registros.,Float64,BRL,True,True,1,"sum(payment_value, min_count=1) por order_id",pago,descriptor
+pedidos_procesados,cantidad_resenas,Número de reseñas asociadas al pedido.,Int64,reseñas,True,False,0,size por order_id; 0 sin reseñas,post_evento,auditoria
+pedidos_procesados,calificacion_media,"Media de las puntuaciones válidas del pedido, sin sumar ni escoger una arbitrariamente.",Float64,estrellas,True,True,768,mean(review_score) por order_id,post_evento,resultado_no_predictor
+pedidos_procesados,sin_items,No existen registros de ítem para el pedido.,boolean,booleano,True,False,0,cantidad_items == 0,compra,auditoria
+pedidos_procesados,sin_pago,No existen registros de pago para el pedido.,boolean,booleano,True,False,0,cantidad_registros_pago == 0,pago,auditoria
+pedidos_procesados,sin_resenas,No existen reseñas para el pedido.,boolean,booleano,True,False,0,cantidad_resenas == 0,post_evento,auditoria
+pedidos_procesados,sin_geolocalizacion_cliente,No hay par de coordenadas utilizable para el cliente.,boolean,booleano,True,False,0,customer_lat o customer_lng nulo,catalogo,auditoria
+pedidos_procesados,anio_compra,Año de compra.,Int64,año,True,False,0,order_purchase_timestamp.dt.year,compra,candidato_predictor
+pedidos_procesados,mes_compra,"Mes de compra, de 1 a 12.",Int64,mes,True,False,0,order_purchase_timestamp.dt.month,compra,candidato_predictor
+pedidos_procesados,dia_semana_compra,"Día de compra: lunes=0, domingo=6.",Int64,día de semana,True,False,0,order_purchase_timestamp.dt.dayofweek,compra,candidato_predictor
+pedidos_procesados,es_entregado,Estado final observado igual a delivered.,boolean,booleano,True,False,0,"order_status == ""delivered""",post_evento,filtro_no_predictor
+pedidos_procesados,tiene_fecha_entrega,Existe una fecha de entrega convertible.,boolean,booleano,True,False,0,order_delivered_customer_date.notna(),post_evento,auditoria
+pedidos_procesados,dias_entrega,Duración observada; solo pedidos entregados con fecha y duración no negativa.,Float64,días,True,True,2971,(entrega - compra).total_seconds() / 86400,post_evento,objetivo_regresion
+pedidos_procesados,dias_prometidos,Tiempo entre compra y fecha prometida a medianoche; no se redondea.,Float64,días,True,True,0,(fecha estimada - compra).total_seconds() / 86400,compra,candidato_predictor
+pedidos_procesados,dias_retraso_calendario,Diferencia de fechas calendario; negativa significa entrega anticipada.,Int64,días,True,True,2971,"normalize(entrega) - normalize(fecha estimada), en días",post_evento,resultado_no_predictor
+pedidos_procesados,entrega_tardia,Entrega después del día prometido; nulo cuando no se puede evaluar.,boolean,booleano,True,True,2971,dias_retraso_calendario > 0,post_evento,resultado_no_predictor
+pedidos_procesados,compra_despues_aprobacion,La compra figura después de la aprobación.,boolean,booleano,True,False,0,"compra > aprobación, con ambas fechas presentes",post_evento,auditoria
+pedidos_procesados,aprobacion_despues_despacho,La aprobación figura después del despacho.,boolean,booleano,True,False,0,"aprobación > despacho, con ambas fechas presentes",post_evento,auditoria
+pedidos_procesados,despacho_despues_entrega,El despacho figura después de la entrega.,boolean,booleano,True,False,0,"despacho > entrega, con ambas fechas presentes",post_evento,auditoria
+pedidos_procesados,entrega_antes_compra,La fecha de entrega precede a la compra.,boolean,booleano,True,False,0,"entrega < compra, con ambas fechas presentes",post_evento,auditoria
+items_procesados,order_id,Pedido al que pertenece el ítem.,string,identificador,False,False,0,detalles.order_id; unión por claves validadas,compra,identificador
+items_procesados,order_item_id,Posición del ítem dentro del pedido; clave junto con order_id.,Int64,posición,False,False,0,detalles.order_item_id; unión por claves validadas,compra,identificador
+items_procesados,product_id,Identificador del producto.,string,identificador,False,False,0,detalles.product_id; unión por claves validadas,compra,identificador
+items_procesados,seller_id,Identificador del vendedor del ítem.,string,identificador,False,False,0,detalles.seller_id; unión por claves validadas,compra,identificador
+items_procesados,shipping_limit_date,Fecha límite registrada para el despacho.,datetime64[ns],fecha y hora,False,True,0,detalles.shipping_limit_date; unión por claves validadas,operacion,descriptor
+items_procesados,price,"Precio del artículo, sin flete.",Float64,BRL,False,True,0,detalles.price; unión por claves validadas,compra,descriptor
+items_procesados,freight_value,Flete asignado al artículo.,Float64,BRL,False,True,0,detalles.freight_value; unión por claves validadas,compra,descriptor
+items_procesados,product_category_name,Categoría original en portugués; se conserva el faltante.,string,categoría,False,True,1603,productos.product_category_name; unión por claves validadas,catalogo,descriptor
+items_procesados,product_name_lenght,Longitud del nombre; se conserva la ortografía original del campo.,Int64,caracteres,False,True,1603,productos.product_name_lenght; unión por claves validadas,catalogo,descriptor
+items_procesados,product_description_lenght,Longitud de la descripción; nombre original del campo.,Int64,caracteres,False,True,1603,productos.product_description_lenght; unión por claves validadas,catalogo,descriptor
+items_procesados,product_photos_qty,Número de fotos del producto.,Int64,fotos,False,True,1603,productos.product_photos_qty; unión por claves validadas,catalogo,descriptor
+items_procesados,product_weight_g,Peso declarado del producto.,Float64,gramos,False,True,18,productos.product_weight_g; unión por claves validadas,catalogo,descriptor
+items_procesados,product_length_cm,Longitud declarada del paquete.,Float64,centímetros,False,True,18,productos.product_length_cm; unión por claves validadas,catalogo,descriptor
+items_procesados,product_height_cm,Altura declarada del paquete.,Float64,centímetros,False,True,18,productos.product_height_cm; unión por claves validadas,catalogo,descriptor
+items_procesados,product_width_cm,Anchura declarada del paquete.,Float64,centímetros,False,True,18,productos.product_width_cm; unión por claves validadas,catalogo,descriptor
+items_procesados,product_category_name_english,Traducción oficial al inglés; la cobertura no es completa.,string,categoría,False,True,1627,categorias.product_category_name_english; unión por claves validadas,catalogo,descriptor
+items_procesados,sin_categoria,Producto sin categoría original.,boolean,booleano,True,False,0,product_category_name.isna(),catalogo,auditoria
+items_procesados,sin_traduccion,Categoría conocida sin traducción al inglés.,boolean,booleano,True,False,0,categoría no nula y traducción nula,catalogo,auditoria
+items_procesados,categoria_presentacion,Categoría para reportes; no sustituye el valor original.,string,categoría,True,True,0,"product_category_name.fillna(""Sin categoría"")",catalogo,descriptor
+items_procesados,datos_fisicos_incompletos,Falta al menos una dimensión o el peso.,boolean,booleano,True,False,0,"isna en peso, largo, alto o ancho",catalogo,auditoria
+items_procesados,datos_fisicos_invalidos,Algún peso o dimensión conocido es menor o igual a cero.,boolean,booleano,True,False,0,any(valor físico <= 0),catalogo,auditoria
+items_procesados,volumen_cm3,Volumen calculado del paquete; nulo si faltan dimensiones o son inválidas.,Float64,cm³,True,True,18,"largo * alto * ancho, con dimensiones > 0",catalogo,candidato_predictor
+items_procesados,seller_zip_code_prefix,"Prefijo postal del vendedor, normalizado a cinco dígitos.",string,prefijo postal,False,True,0,vendedores.seller_zip_code_prefix; unión por claves validadas,compra,identificador
+items_procesados,seller_city,Ciudad registrada del vendedor.,string,texto,False,True,0,vendedores.seller_city; unión por claves validadas,compra,descriptor
+items_procesados,seller_state,Estado brasileño del vendedor.,string,UF,False,True,0,vendedores.seller_state; unión por claves validadas,compra,descriptor
+items_procesados,seller_lat,Latitud mediana del prefijo del vendedor.,Float64,grados decimales,True,True,253,geolocalizacion_agrupada.latitud_mediana,catalogo,candidato_predictor
+items_procesados,seller_lng,Longitud mediana del prefijo del vendedor.,Float64,grados decimales,True,True,253,geolocalizacion_agrupada.longitud_mediana,catalogo,candidato_predictor
+items_procesados,customer_id,Referencia al registro transaccional del cliente.,string,identificador,False,False,0,pedidos.customer_id; unión por claves validadas,compra,identificador
+items_procesados,order_status,Estado del pedido observado en el corte del dataset.,string,categoría,False,False,0,pedidos.order_status; unión por claves validadas,post_evento,resultado_no_predictor
+items_procesados,order_purchase_timestamp,Fecha y hora de compra.,datetime64[ns],fecha y hora,False,False,0,pedidos.order_purchase_timestamp; unión por claves validadas,compra,descriptor
+items_procesados,customer_unique_id,Identificador del comprador para agrupar sus pedidos.,string,identificador,False,False,0,clientes.customer_unique_id; unión por claves validadas,compra,identificador
+items_procesados,customer_zip_code_prefix,"Prefijo postal del cliente, normalizado a cinco dígitos.",string,prefijo postal,False,True,0,clientes.customer_zip_code_prefix; unión por claves validadas,compra,identificador
+items_procesados,customer_city,Ciudad registrada del cliente.,string,texto,False,True,0,clientes.customer_city; unión por claves validadas,compra,descriptor
+items_procesados,customer_state,Estado brasileño del cliente.,string,UF,False,True,0,clientes.customer_state; unión por claves validadas,compra,descriptor
+items_procesados,customer_lat,Latitud mediana del prefijo del cliente.,Float64,grados decimales,True,True,302,geolocalizacion_agrupada.latitud_mediana,catalogo,candidato_predictor
+items_procesados,customer_lng,Longitud mediana del prefijo del cliente.,Float64,grados decimales,True,True,302,geolocalizacion_agrupada.longitud_mediana,catalogo,candidato_predictor
+items_procesados,sin_geolocalizacion_cliente,No hay par de coordenadas utilizable para el cliente.,boolean,booleano,True,False,0,customer_lat o customer_lng nulo,catalogo,auditoria
+items_procesados,sin_geolocalizacion_vendedor,No hay par de coordenadas utilizable para el vendedor.,boolean,booleano,True,False,0,seller_lat o seller_lng nulo,catalogo,auditoria
+items_procesados,distancia_km,Distancia aproximada en línea recta por ítem; no es distancia por carretera.,Float64,km,True,True,554,Haversine entre medianas postales; radio terrestre 6371.0088 km,catalogo,candidato_predictor
+items_procesados,ruta_interestatal,Cliente y vendedor pertenecen a estados distintos.,boolean,booleano,True,True,0,customer_state != seller_state; nulo si falta algún estado,compra,candidato_predictor
+geolocalizacion_agrupada,geolocation_zip_code_prefix,Prefijo postal repetible; no es clave en la tabla original.,string,prefijo postal,False,False,0,geolocalizacion.geolocation_zip_code_prefix; unión por claves validadas,catalogo,identificador
+geolocalizacion_agrupada,latitud_mediana,Latitud representativa del prefijo postal.,Float64,grados decimales,True,True,0,mediana de pares de coordenadas válidos tras deduplicar filas,catalogo,descriptor
+geolocalizacion_agrupada,longitud_mediana,Longitud representativa del prefijo postal.,Float64,grados decimales,True,True,0,mediana de pares de coordenadas válidos tras deduplicar filas,catalogo,descriptor
+geolocalizacion_agrupada,cantidad_observaciones,"Observaciones del prefijo tras deduplicar, incluidas las de coordenadas inválidas.",Int64,observaciones,True,False,0,size por prefijo postal,catalogo,auditoria
+geolocalizacion_agrupada,cantidad_coordenadas_validas,Observaciones con latitud y longitud válidas simultáneamente.,Int64,observaciones,True,False,0,sum(coordenadas_validas) por prefijo,catalogo,auditoria

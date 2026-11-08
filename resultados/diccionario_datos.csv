@@ -1,0 +1,53 @@
+﻿tabla,columna,descripcion,tipo_lectura,tipo_propuesto,tipo_procesado,unidad,clave_o_relacion,nulos_origen,permite_nulos_en_salida,disponibilidad,tratamiento
+clientes,customer_id,Identificador del registro de cliente asociado al pedido.,string,string,string,identificador,parte de clave: customer_id,0,False,compra,Conservar valor y faltantes originales.
+clientes,customer_unique_id,Identificador del comprador para agrupar sus pedidos.,string,string,string,identificador,,0,True,compra,Conservar valor y faltantes originales.
+clientes,customer_zip_code_prefix,"Prefijo postal del cliente, normalizado a cinco dígitos.",string,string,string,prefijo postal,,0,True,compra,Texto de cinco dígitos; inválidos registrados como incidencia.
+clientes,customer_city,Ciudad registrada del cliente.,string,string,string,texto,,0,True,compra,Conservar valor y faltantes originales.
+clientes,customer_state,Estado brasileño del cliente.,string,string,string,UF,,0,True,compra,Conservar valor y faltantes originales.
+geolocalizacion,geolocation_zip_code_prefix,Prefijo postal repetible; no es clave en la tabla original.,string,string,string,prefijo postal,,0,True,catalogo,Texto de cinco dígitos; inválidos registrados como incidencia.
+geolocalizacion,geolocation_lat,Latitud observada del prefijo postal.,string,Float64,Float64,grados decimales,,0,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+geolocalizacion,geolocation_lng,Longitud observada del prefijo postal.,string,Float64,Float64,grados decimales,,0,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+geolocalizacion,geolocation_city,Ciudad asociada a la observación geográfica.,string,string,string,texto,,0,True,catalogo,Conservar valor y faltantes originales.
+geolocalizacion,geolocation_state,Estado brasileño de la observación geográfica.,string,string,string,UF,,0,True,catalogo,Conservar valor y faltantes originales.
+detalles,order_id,Pedido al que pertenece el ítem.,string,string,string,identificador,parte de clave: order_id + order_item_id; referencia: pedidos.order_id,0,False,compra,Conservar valor y faltantes originales.
+detalles,order_item_id,Posición del ítem dentro del pedido; clave junto con order_id.,string,Int64,Int64,posición,parte de clave: order_id + order_item_id,0,False,compra,Conversión explícita; fallos contabilizados por registro.
+detalles,product_id,Identificador del producto.,string,string,string,identificador,referencia: productos.product_id,0,True,compra,Conservar valor y faltantes originales.
+detalles,seller_id,Identificador del vendedor del ítem.,string,string,string,identificador,referencia: vendedores.seller_id,0,True,compra,Conservar valor y faltantes originales.
+detalles,shipping_limit_date,Fecha límite registrada para el despacho.,string,datetime64[ns],datetime64[ns],fecha y hora,,0,True,operacion,Conversión explícita; fallos contabilizados por registro.
+detalles,price,"Precio del artículo, sin flete.",string,Float64,Float64,BRL,,0,True,compra,Conversión explícita; fallos contabilizados por registro.
+detalles,freight_value,Flete asignado al artículo.,string,Float64,Float64,BRL,,0,True,compra,Conversión explícita; fallos contabilizados por registro.
+pagos,order_id,Pedido al que corresponde el registro de pago.,string,string,string,identificador,parte de clave: order_id + payment_sequential; referencia: pedidos.order_id,0,False,compra,Conservar valor y faltantes originales.
+pagos,payment_sequential,Secuencia del pago; clave junto con order_id.,string,Int64,Int64,posición,parte de clave: order_id + payment_sequential,0,False,pago,Conversión explícita; fallos contabilizados por registro.
+pagos,payment_type,Medio de pago registrado.,string,string,string,categoría,,0,True,pago,Conservar valor y faltantes originales.
+pagos,payment_installments,Cantidad de cuotas registrada; se conservan los ceros y se señalan.,string,Int64,Int64,cuotas,,0,True,pago,Conversión explícita; fallos contabilizados por registro.
+pagos,payment_value,Importe del registro de pago; puede haber varios por pedido.,string,Float64,Float64,BRL,,0,True,pago,Conversión explícita; fallos contabilizados por registro.
+opiniones,review_id,Identificador de reseña; puede repetirse y no se trata como clave primaria.,string,string,string,identificador,,0,True,post_evento,Conservar valor y faltantes originales.
+opiniones,order_id,Pedido evaluado; puede tener varias reseñas.,string,string,string,identificador,referencia: pedidos.order_id,0,True,post_evento,Conservar valor y faltantes originales.
+opiniones,review_score,Puntuación de satisfacción entre 1 y 5.,string,Int64,Int64,estrellas,,0,True,post_evento,Conversión explícita; fallos contabilizados por registro.
+opiniones,review_comment_title,Título opcional de la reseña.,string,string,string,texto,,87656,True,post_evento,Conservar valor y faltantes originales.
+opiniones,review_comment_message,Comentario opcional; su ausencia no invalida la puntuación.,string,string,string,texto,,58247,True,post_evento,Conservar valor y faltantes originales.
+opiniones,review_creation_date,Fecha de creación de la encuesta de satisfacción.,string,datetime64[ns],datetime64[ns],fecha y hora,,0,True,post_evento,Conversión explícita; fallos contabilizados por registro.
+opiniones,review_answer_timestamp,Fecha y hora de respuesta a la encuesta.,string,datetime64[ns],datetime64[ns],fecha y hora,,0,True,post_evento,Conversión explícita; fallos contabilizados por registro.
+pedidos,order_id,Clave primaria del pedido.,string,string,string,identificador,parte de clave: order_id,0,False,compra,Conservar valor y faltantes originales.
+pedidos,customer_id,Referencia al registro transaccional del cliente.,string,string,string,identificador,referencia: clientes.customer_id,0,True,compra,Conservar valor y faltantes originales.
+pedidos,order_status,Estado del pedido observado en el corte del dataset.,string,string,string,categoría,,0,True,post_evento,Conservar valor y faltantes originales.
+pedidos,order_purchase_timestamp,Fecha y hora de compra.,string,datetime64[ns],datetime64[ns],fecha y hora,,0,True,compra,Conversión explícita; fallos contabilizados por registro.
+pedidos,order_approved_at,Fecha y hora de aprobación del pago.,string,datetime64[ns],datetime64[ns],fecha y hora,,160,True,pago,Conversión explícita; fallos contabilizados por registro.
+pedidos,order_delivered_carrier_date,Fecha y hora de despacho al transportista.,string,datetime64[ns],datetime64[ns],fecha y hora,,1783,True,operacion,Conversión explícita; fallos contabilizados por registro.
+pedidos,order_delivered_customer_date,Fecha y hora real de entrega al cliente.,string,datetime64[ns],datetime64[ns],fecha y hora,,2965,True,post_evento,Conversión explícita; fallos contabilizados por registro.
+pedidos,order_estimated_delivery_date,Fecha de entrega prometida.,string,datetime64[ns],datetime64[ns],fecha y hora,,0,True,compra,Conversión explícita; fallos contabilizados por registro.
+productos,product_id,Clave primaria del producto.,string,string,string,identificador,parte de clave: product_id,0,False,compra,Conservar valor y faltantes originales.
+productos,product_category_name,Categoría original en portugués; se conserva el faltante.,string,string,string,categoría,,610,True,catalogo,Conservar valor y faltantes originales.
+productos,product_name_lenght,Longitud del nombre; se conserva la ortografía original del campo.,string,Int64,Int64,caracteres,,610,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_description_lenght,Longitud de la descripción; nombre original del campo.,string,Int64,Int64,caracteres,,610,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_photos_qty,Número de fotos del producto.,string,Int64,Int64,fotos,,610,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_weight_g,Peso declarado del producto.,string,Float64,Float64,gramos,,2,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_length_cm,Longitud declarada del paquete.,string,Float64,Float64,centímetros,,2,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_height_cm,Altura declarada del paquete.,string,Float64,Float64,centímetros,,2,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+productos,product_width_cm,Anchura declarada del paquete.,string,Float64,Float64,centímetros,,2,True,catalogo,Conversión explícita; fallos contabilizados por registro.
+vendedores,seller_id,Clave primaria del vendedor.,string,string,string,identificador,parte de clave: seller_id,0,False,compra,Conservar valor y faltantes originales.
+vendedores,seller_zip_code_prefix,"Prefijo postal del vendedor, normalizado a cinco dígitos.",string,string,string,prefijo postal,,0,True,compra,Texto de cinco dígitos; inválidos registrados como incidencia.
+vendedores,seller_city,Ciudad registrada del vendedor.,string,string,string,texto,,0,True,compra,Conservar valor y faltantes originales.
+vendedores,seller_state,Estado brasileño del vendedor.,string,string,string,UF,,0,True,compra,Conservar valor y faltantes originales.
+categorias,product_category_name,Categoría original que sirve de clave de traducción.,string,string,string,categoría,parte de clave: product_category_name,0,False,catalogo,Conservar valor y faltantes originales.
+categorias,product_category_name_english,Traducción oficial al inglés; la cobertura no es completa.,string,string,string,categoría,,0,True,catalogo,Conservar valor y faltantes originales.

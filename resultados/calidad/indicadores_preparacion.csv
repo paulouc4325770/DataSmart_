@@ -1,0 +1,17 @@
+﻿indicador,valor
+pedidos_totales,99441.0
+items_totales,112650.0
+pedidos_entregados,96478.0
+clientes_unicos_todos_estados,96096.0
+clientes_recurrentes_todos_estados,2997.0
+porcentaje_clientes_recurrentes,3.118756
+clientes_unicos_entregados,93358.0
+ventas_articulos_entregados_BRL,13221498.11
+pedidos_sin_items,775.0
+pedidos_sin_pago,1.0
+pedidos_sin_resenas,768.0
+pedidos_con_multiples_resenas,547.0
+entregados_sin_fecha,8.0
+pedidos_evaluables_puntualidad_calendario,96470.0
+entregas_tardias_calendario,6534.0
+tasa_entregas_tardias_calendario_pct,6.77309
