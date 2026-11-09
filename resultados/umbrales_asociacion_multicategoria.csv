@@ -1,0 +1,9 @@
+﻿umbral_pedidos,soporte_equivalente,pares_frecuentes,pares_lift_mayor_1,umbral_elegido
+1,0.00138313,242,142,False
+2,0.00276625,107,60,False
+3,0.00414938,60,35,False
+5,0.00691563,36,26,False
+10,0.01383126,17,10,True
+20,0.02766252,5,3,False
+50,0.06915629,1,1,False
+100,0.13831259,0,0,False

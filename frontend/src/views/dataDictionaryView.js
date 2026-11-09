@@ -1,5 +1,5 @@
 /**
- * Módulo 3: Diccionario de Datos (53 Columnas) & Esquema Relacional Olist
+ * Módulo 3: Diccionario de Datos (52 Columnas) & Esquema Relacional Olist
  * Cubre la Sección 6 y Sección 10 (10.1 a 10.9) del Informe + `resultados/diccionario_perfilado.csv`.
  */
 
@@ -126,7 +126,7 @@ export function renderDataDictionaryView(store, state) {
             data-action="select-dict-table"
             data-table="${tbl}"
           >
-            ${tbl === 'ALL' ? 'Todas (53)' : tbl}
+            ${tbl === 'ALL' ? 'Todas (52)' : tbl}
           </button>
         `
           )

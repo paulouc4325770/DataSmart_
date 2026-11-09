@@ -1,0 +1,8 @@
+﻿concepto,pedidos,pct_pedidos_entregados,pct_universo,en_universo
+pedidos_entregados,96478,100.0,,False
+vacias_sin_items,0,0.0,,False
+sin_categoria_conocida,1332,1.3806,,False
+unitarias_una_categoria,94423,97.87,99.2401,True
+multicategoria_dos_o_mas,723,0.7494,0.7599,True
+universo_total,95146,98.6194,100.0,True
+informativo_unitarias_con_varios_items,8813,9.1347,9.2626,True

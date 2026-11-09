@@ -73,7 +73,7 @@ DataSmart_/
 ├── resultados/
 │   ├── indicadores_kpi.csv       # Métricas clave (99.441 pedidos, R$ 13,22M ventas)
 │   ├── resumen_tablas.csv        # Filas, columnas, nulos y duplicados por tabla
-│   ├── diccionario_perfilado.csv # 53 columnas perfiladas con tipos y cardinalidad
+│   ├── diccionario_perfilado.csv # 52 columnas perfiladas con tipos y cardinalidad
 │   ├── ventas_mensuales.csv      # Serie temporal mensual de artículos entregados
 │   └── graficos/                 # 3 visualizaciones PNG en español (170 DPI)
 ├── frontend/                     # Aplicación Web Analítica (Arquitectura Modular ES/Vite)

@@ -26,7 +26,9 @@ const appState = {
   dictOnlyNulls: false,
   // Business Models Workbench state
   activeLabTab: 'rfm',
-  minLift: 1.8,
+  minLift: 0,
+  assocPopulation: 'principal',
+  selectedRuleId: null,
   forecastHorizon: 4,
   simDistanceKm: 650,
   simWeightGrams: 1800,
@@ -47,7 +49,7 @@ const VIEW_METADATA = {
   },
   dictionary: {
     section: 'Gobierno de Datos & Esquema SQL (Secciones 6 y 10)',
-    title: 'Diccionario de Datos (53 Columnas) & Modelo Relacional',
+    title: 'Diccionario de Datos (52 Columnas) & Modelo Relacional',
   },
   models: {
     section: 'Modelado & Explicabilidad (Sección 5 — PN-01 a PN-10)',
@@ -133,7 +135,7 @@ function renderAppShell() {
                   <span class="nav-icon">📖</span>
                   <span>Diccionario & SQL</span>
                 </span>
-                <span class="nav-pill">53 Cols</span>
+                <span class="nav-pill">52 Cols</span>
               </button>
             </li>
             <li>
@@ -334,6 +336,20 @@ function attachGlobalListeners() {
 
       case 'toggle-dict-only-nulls': {
         appState.dictOnlyNulls = !appState.dictOnlyNulls;
+        renderAppShell();
+        break;
+      }
+
+      case 'set-assoc-population': {
+        appState.assocPopulation = target.getAttribute('data-population') || 'principal';
+        appState.selectedRuleId = null;
+        renderAppShell();
+        break;
+      }
+
+      case 'select-rule': {
+        const ruleId = target.getAttribute('data-rule-id');
+        appState.selectedRuleId = appState.selectedRuleId === ruleId ? null : ruleId;
         renderAppShell();
         break;
       }
