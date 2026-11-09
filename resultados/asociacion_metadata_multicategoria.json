@@ -1,0 +1,31 @@
+{
+  "ejecutado_en_utc": "2026-11-08T14:17:17.159216+00:00",
+  "python": "3.13.16",
+  "pandas": "2.3.3",
+  "items_csv": "D:\\Paulo\\Desktop\\DataSmart_-main\\data\\processed\\items_procesados.csv",
+  "items_sha256": "cff2bd4af6bf56493ce6641c809d0fe7fe27162bdfde48d1011667e86a3a03fe",
+  "poblacion_analisis": "multicategoria",
+  "poblacion_referencia": "Pedidos entregados con 2 o más categorías conocidas distintas (cestas multicategoría); una cesta por order_id; N=723",
+  "total_cestas_analisis": 723,
+  "composicion": {
+    "pedidos_entregados": 96478,
+    "vacias": 0,
+    "sin_categoria_conocida": 1332,
+    "unitarias": 94423,
+    "multicategoria": 723,
+    "universo": 95146,
+    "unitarias_con_varios_items": 8813
+  },
+  "parametros": {
+    "min_pedidos": 10,
+    "min_soporte": 0.013831258644536652,
+    "min_confianza": 0.0,
+    "max_len": 2,
+    "repeticiones_tiempo": 5,
+    "aleatoriedad": "ninguna; los resultados son deterministas"
+  },
+  "pares_de_categorias_observados": 242,
+  "reglas": 34,
+  "pedidos_rastreados_en_total": 666,
+  "algoritmos_coinciden": true
+}

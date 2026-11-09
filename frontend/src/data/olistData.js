@@ -37,7 +37,7 @@ export const OFFICIAL_KPIS = [
     formatted: '96.096',
     unit: 'compradores',
     definition: 'Conteo distinto de customer_unique_id (agrupa recompras)',
-    badge: 'Tasa recompra ~3.36%',
+    badge: 'Tasa recompra 3,12%',
     accent: 'cyan',
     icon: 'users',
   },
@@ -88,10 +88,10 @@ export const OFFICIAL_KPIS = [
   {
     id: 'tasa_entregas_tardias',
     label: 'Tasa de Entregas Tardías',
-    value: 8.11,
-    formatted: '8,11 %',
-    unit: '7.826 tardíos',
-    definition: '7.826 entregas tardías sobre 96.470 entregados con ambas fechas',
+    value: 6.77,
+    formatted: '6,77 %',
+    unit: '6.534 tardíos',
+    definition: '6.534 entregas tardías (por día calendario) sobre 96.470 entregados con ambas fechas',
     badge: 'SLA Logístico',
     accent: 'rose',
     icon: 'truck',
@@ -376,17 +376,17 @@ export const TREATMENT_PLAN_STEPS = [
     step: 6,
     title: 'Pre-agregación en Relaciones 1-a-Muchos',
     description: 'Agrupar pagos y reseñas por order_id y geolocalización por zip_code_prefix antes de joins para evitar inflación de importes.',
-    status: 'En Pipeline Semana 10',
+    status: 'Implementado',
   },
   {
     step: 7,
     title: 'Validación Temporal Anti-Data Leakage',
     description: 'Aplicar split temporal (Train/Test cronológico) y excluir variables post-evento al entrenar modelos predictivos.',
-    status: 'En Pipeline Semana 10',
+    status: 'Pendiente (fase de modelado)',
   },
 ];
 
-// Sección 10 + resultados/diccionario_perfilado.csv (53 columnas completas)
+// Sección 10 + resultados/diccionario_perfilado.csv (52 columnas completas)
 export const DATA_DICTIONARY = [
   // clientes (5)
   { table: 'clientes', column: 'customer_id', pandasType: 'object', sqlType: 'VARCHAR(32)', nulls: 0, nullPct: 0.0, distinct: 99441, meaning: 'Identificador del registro de cliente asociado a un pedido' },
@@ -461,7 +461,7 @@ export const BUSINESS_QUESTIONS = [
     targetWeek: 'Semana 13',
     metrics: 'Silhouette Score, Davies-Bouldin, Inercia (WCSS)',
     summary: 'Segmentación de los 96.096 compradores únicos según Recencia (días desde última compra), Frecuencia (pedidos por customer_unique_id) y Monto (suma de price).',
-    status: 'Laboratorio Interactivo Disponible',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-02',
@@ -470,8 +470,8 @@ export const BUSINESS_QUESTIONS = [
     technique: 'Scoring RFM & Curva de Pareto',
     targetWeek: 'Semana 10–13',
     metrics: 'Cuantiles monetarios (Q1–Q5), Índice Gini, Top 1% / 5% / 20%',
-    summary: 'Identificación de clientes de alto valor (High-Ticket & Repeat Buyers) frente al ~96.6% de compradores de única transacción en Olist.',
-    status: 'Laboratorio Interactivo Disponible',
+    summary: 'Identificación de clientes de alto valor (High-Ticket & Repeat Buyers) frente al ~96.9% de compradores de única transacción en Olist.',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-03',
@@ -491,17 +491,17 @@ export const BUSINESS_QUESTIONS = [
     targetWeek: 'Semana 13',
     metrics: 'MAE, RMSE, MAPE (excluyendo meses extremos incompletos)',
     summary: 'Pronóstico de ingresos mensuales y semanales filtrando los meses extremos de 2016 y posteriores a agosto 2018 para evitar sesgo de truncamiento.',
-    status: 'Simulador de Pronóstico Activo',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-05',
     area: 'Productos',
     question: '¿Qué productos aparecen juntos en los pedidos?',
-    technique: 'Reglas de Asociación (Apriori / FP-Growth / ECLAT)',
+    technique: 'Reglas de Asociación (Apriori y FP-Growth, mismos parámetros)',
     targetWeek: 'Semana 10',
-    metrics: 'Support, Confidence, Lift, Conviction',
-    summary: 'Descubrimiento de cestas multi-artículo y afinidad entre categorías (ej. Cama/Mesa/Baño + Decoración, Informática + Accesorios) en los 112.650 ítems.',
-    status: 'Explorador de Reglas Activo',
+    metrics: 'Soporte, Confianza, Lift, p-valor y n.º de pedidos por regla',
+    summary: 'Cestas por order_id y categoría sobre 95.146 pedidos entregados: solo 723 (0,76 %) combinan 2 o más categorías. Cada regla se rastrea hasta los pedidos que la sustentan.',
+    status: 'Resultados reales (Apriori y FP-Growth)',
   },
   {
     id: 'PN-06',
@@ -520,8 +520,8 @@ export const BUSINESS_QUESTIONS = [
     technique: 'Regresión Supervisada + Explicabilidad SHAP',
     targetWeek: 'Semana 13–16',
     metrics: 'MAE (días), RMSE, R², Importancia SHAP',
-    summary: 'Modelado de los tiempos reales de entrega y del 8.11% de entregas tardías en función de distancia interestatal (seller_state vs customer_state), peso, volumen y flete.',
-    status: 'Simulador Logístico + SHAP Activo',
+    summary: 'Modelado de los tiempos reales de entrega y del 6.77% de entregas tardías en función de distancia interestatal (seller_state vs customer_state), peso, volumen y flete.',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-08',
@@ -531,7 +531,7 @@ export const BUSINESS_QUESTIONS = [
     targetWeek: 'Semana 16',
     metrics: 'Precision, Recall, F1-Score Macro, ROC-AUC',
     summary: 'Predicción de reseñas críticas (1–2 estrellas) vs positivas (4–5 estrellas) demostrando que el retraso logístico (delta entrega > estimado) es el predictor #1 de insatisfacción.',
-    status: 'Simulador de Clasificación Activo',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-09',
@@ -541,7 +541,7 @@ export const BUSINESS_QUESTIONS = [
     targetWeek: 'Semana 13',
     metrics: 'Degree Centrality, Betweenness, PageRank, Modularidad',
     summary: 'Red bipartita/tripartita entre estados brasileños y categorías: São Paulo (SP) actúa como nodo concentrador emisor (~70% sellers) y receptor (~42% clientes).',
-    status: 'Grafo Interactivo Activo',
+    status: 'Simulación con datos de ejemplo',
   },
   {
     id: 'PN-10',
@@ -551,7 +551,7 @@ export const BUSINESS_QUESTIONS = [
     targetWeek: 'Semana 16',
     metrics: 'Coherencia de Tópicos, Polaridad Léxica, TF-IDF Score',
     summary: 'Análisis sobre las 40.977 reseñas con mensaje textual en portugués identificando tópicos de demora postal ("prazo", "correios"), calidad ("excelente", "recomendo") y defectos.',
-    status: 'Explorador NLP Activo',
+    status: 'Simulación con datos de ejemplo',
   },
 ];
 
@@ -562,15 +562,6 @@ export const RFM_SEGMENTS_PREVIEW = [
   { segment: 'Ticket Alto Estacional (Big Spenders)', customers: 11940, sharePct: 12.43, avgRecencyDays: 240, avgFrequency: 1.05, avgMonetaryBRL: 389.20, color: '#8b5cf6', action: 'Campañas en fechas clave (Black Friday / Día de la Madre)' },
   { segment: 'En Riesgo / Inactivos Medios', customers: 24610, sharePct: 25.61, avgRecencyDays: 345, avgFrequency: 1.00, avgMonetaryBRL: 92.40, color: '#f59e0b', action: 'Reactivación con descuento en flete (freight_value)' },
   { segment: 'Hibernando / Compra Única Antigua', customers: 21276, sharePct: 22.14, avgRecencyDays: 490, avgFrequency: 1.00, avgMonetaryBRL: 64.10, color: '#64748b', action: 'Exclusión de pauta costosa; retargeting orgánico' },
-];
-
-export const ASSOCIATION_RULES_PREVIEW = [
-  { id: 'AR-01', antecedent: 'Cama, mesa y baño', consequent: 'Muebles y decoración', support: 0.0142, confidence: 0.284, lift: 2.64, ordersCount: 1401 },
-  { id: 'AR-02', antecedent: 'Accesorios informáticos', consequent: 'Telefonía y periféricos', support: 0.0098, confidence: 0.241, lift: 2.38, ordersCount: 967 },
-  { id: 'AR-03', antecedent: 'Belleza y salud', consequent: 'Perfumería y cuidado personal', support: 0.0115, confidence: 0.268, lift: 2.21, ordersCount: 1135 },
-  { id: 'AR-04', antecedent: 'Artículos para el hogar', consequent: 'Muebles y decoración', support: 0.0109, confidence: 0.219, lift: 2.05, ordersCount: 1076 },
-  { id: 'AR-05', antecedent: 'Deportes y ocio', consequent: 'Belleza y salud', support: 0.0084, confidence: 0.195, lift: 1.89, ordersCount: 829 },
-  { id: 'AR-06', antecedent: 'Herramientas de jardín', consequent: 'Construcción e iluminación', support: 0.0067, confidence: 0.312, lift: 3.15, ordersCount: 661 },
 ];
 
 export const SHAP_FEATURE_IMPORTANCE = [
@@ -632,28 +623,29 @@ export const CRISP_DM_ROADMAP = [
       'Definición del problema, objetivos y 10 preguntas de negocio (PN-01 a PN-10).',
       'Perfilado automatizado de las 9 tablas CSV de Olist (99.441 pedidos, 96.096 clientes únicos).',
       'Cálculo de 10 KPIs oficiales y generación de 3 gráficos exploratorios en español.',
-      'Evaluación de calidad de datos (nulos y 261.831 duplicados en geolocalización) y diccionario de 53 columnas.',
+      'Evaluación de calidad de datos (nulos y 261.831 duplicados en geolocalización) y diccionario de 52 columnas.',
     ],
   },
   {
     week: 'Semana 10',
     phase: '3. Preparación de Datos & Primeros Modelos (Asociación)',
-    techStack: 'Scikit-learn, MLxtend (Apriori/FP-Growth), PostgreSQL, FastAPI',
-    status: 'En Desarrollo / Prototipo Frontend Activo',
-    progress: 75,
+    techStack: 'Python 3, pandas, Apriori y FP-Growth (implementación propia), servidor Python y frontend JS',
+    status: 'Asociación implementada; integración en curso',
+    progress: 80,
     deliverables: [
-      'Pipeline de limpieza en data/processed/ con pre-agregación por order_id y zip_code_prefix.',
-      'Ingeniería de características RFM, delta logístico y variables geográficas.',
-      'Implementación de Reglas de Asociación (Apriori, FP-Growth, ECLAT) sobre detalles de pedidos.',
-      'Persistencia relacional en PostgreSQL y endpoints iniciales en FastAPI.',
+      'Dataset procesado en data/processed/ (ítems y pedidos, 50 controles de calidad aprobados).',
+      'Ingeniería de características documentada en resultados/diccionario_variables_derivadas.csv.',
+      'Modelos de asociación: Apriori y FP-Growth con los mismos parámetros sobre 95.146 cestas (34 reglas; ambos algoritmos coinciden).',
+      'Primer prototipo web con reglas reales, población de referencia explícita y pedidos rastreables por regla.',
+      'Pendiente: integrar los resultados de segmentación, series temporales y regresión del resto del equipo.',
     ],
   },
   {
     week: 'Semana 13',
     phase: '4. Modelado Avanzado & 5. Evaluación Comparativa',
     techStack: 'Statsmodels, NetworkX, Scikit-learn, Plotly',
-    status: 'Planificado / Simuladores en Plataforma',
-    progress: 50,
+    status: 'Pendiente de integrar (simuladores con datos de ejemplo)',
+    progress: 0,
     deliverables: [
       'Segmentación de clientes con RFM + K-Means y DBSCAN validado con Silhouette Score.',
       'Pronóstico de series temporales de ventas excluyendo meses extremos incompletos.',
@@ -664,9 +656,9 @@ export const CRISP_DM_ROADMAP = [
   {
     week: 'Semana 16',
     phase: '6. Despliegue Web, Clasificación, NLP, Explicabilidad y Monitoreo',
-    techStack: 'React Frontend, FastAPI, NLP, SHAP / LIME, Docker',
-    status: 'Interfaz Web Implementada',
-    progress: 85,
+    techStack: 'Frontend JS, servidor Python, NLP, SHAP / LIME',
+    status: 'Pendiente (interfaz base lista; módulos con datos de ejemplo)',
+    progress: 0,
     deliverables: [
       'Clasificación de satisfacción de reseñas y minería de textos (NLP) sobre 40.977 comentarios.',
       'Integración de explicabilidad local y global con SHAP y LIME.',

@@ -6,12 +6,19 @@
 
 import { renderMonthlySalesSVG, renderEntityNetworkSVG } from '../components/svgCharts.js';
 import { formatBRL, formatInt, formatPct } from '../utils/formatters.js';
+import { renderAssociationTab } from './associationView.js';
+
+/** Color del chip de estado según lo realmente implementado. */
+function statusChipClass(status) {
+  if (/^(Resultados reales|Completado)/.test(status)) return 'chip-emerald';
+  return 'chip-amber';
+}
 
 export function renderBusinessModelsView(store, state) {
   const {
     businessQuestions,
     rfmSegments,
-    associationRules,
+    association,
     shapImportance,
     nlpTopics,
     monthlySales,
@@ -19,16 +26,12 @@ export function renderBusinessModelsView(store, state) {
 
   const {
     activeLabTab,
-    minLift,
     forecastHorizon,
     simDistanceKm,
     simWeightGrams,
     simInterstate,
     selectedGraphNode,
   } = state;
-
-  // Filtrar reglas de asociación por Lift mínimo
-  const filteredRules = associationRules.filter(r => r.lift >= minLift);
 
   // Generar meses de pronóstico (PN-04) sobre la serie limpia (sin meses extremos 2016)
   const cleanHistory = monthlySales.filter(m => !m.isExtreme);
@@ -77,6 +80,7 @@ export function renderBusinessModelsView(store, state) {
               <th>Técnica / Algoritmo Previsto</th>
               <th>Métricas de Evaluación</th>
               <th>Entrega</th>
+              <th>Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -93,6 +97,7 @@ export function renderBusinessModelsView(store, state) {
                 <td class="mono" style="color:var(--accent-cyan);">${bq.technique}</td>
                 <td style="font-size:0.77rem; color:var(--text-secondary);">${bq.metrics}</td>
                 <td><span class="chip chip-emerald">${bq.targetWeek}</span></td>
+                <td><span class="chip ${statusChipClass(bq.status)}">${bq.status}</span></td>
               </tr>
             `
               )
@@ -179,19 +184,19 @@ export function renderBusinessModelsView(store, state) {
             <h4 style="font-size:0.92rem;">Hallazgo Clave de Negocio (Delimitación Olist)</h4>
             <p style="font-size:0.8rem; color:var(--text-secondary);">
               Al comparar <code>pedidos_totales (99.441)</code> frente a <code>clientes_unicos (96.096)</code>, se observa
-              que solo ~3,36% de los clientes realiza múltiples pedidos en el horizonte histórico.
+              que solo ~3,12% de los clientes realiza múltiples pedidos en el horizonte histórico.
             </p>
             <div class="bar-row">
               <div class="bar-row-label">
                 <span>Clientes de Compra Única (1 pedido)</span>
-                <span class="mono">96,64%</span>
+                <span class="mono">96,88%</span>
               </div>
-              <div class="bar-track"><div class="bar-fill" style="width:96.64%; background:#3b82f6;"></div></div>
+              <div class="bar-track"><div class="bar-fill" style="width:96.88%; background:#3b82f6;"></div></div>
             </div>
             <div class="bar-row">
               <div class="bar-row-label">
                 <span>Clientes Recurrentes (≥ 2 pedidos)</span>
-                <span class="mono">3,36%</span>
+                <span class="mono">3,12%</span>
               </div>
               <div class="bar-track"><div class="bar-fill" style="width:12%; background:#10b981;"></div></div>
             </div>
@@ -209,65 +214,7 @@ export function renderBusinessModelsView(store, state) {
       ${
         activeLabTab === 'association'
           ? `
-        <!-- TAB 2: REGLAS DE ASOCIACIÓN APRIORI / FP-GROWTH (PN-05 & PN-06) -->
-        <div style="display:flex; flex-direction:column; gap:1rem; margin-top:0.5rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; background:var(--bg-secondary); padding:0.95rem 1.15rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-            <div>
-              <strong style="font-size:0.88rem;">Filtro Interactivo de Reglas de Asociación (Apriori / FP-Growth / ECLAT)</strong>
-              <p style="font-size:0.77rem; color:var(--text-secondary);">
-                Ajusta el umbral mínimo de <strong>Lift</strong> para descubrir co-ocurrencias fuertes en <code>olist_order_items_dataset.csv</code> (112.650 ítems).
-              </p>
-            </div>
-            <div class="control-group" style="min-width:260px;">
-              <label>
-                <span>Lift Mínimo Requerido:</span>
-                <span class="mono" style="color:var(--accent-primary);">${minLift.toFixed(2)}x</span>
-              </label>
-              <input
-                type="range"
-                class="range-slider"
-                min="1.5"
-                max="3.0"
-                step="0.1"
-                value="${minLift}"
-                data-action="change-min-lift"
-              />
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Regla ID</th>
-                  <th>Antecedente (Si compra...)</th>
-                  <th>Consecuente (También lleva...)</th>
-                  <th>Support</th>
-                  <th>Confidence</th>
-                  <th>Lift</th>
-                  <th>Pedidos Co-ocurrentes</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filteredRules
-                  .map(
-                    r => `
-                  <tr>
-                    <td class="mono"><strong>${r.id}</strong></td>
-                    <td><strong>${r.antecedent}</strong></td>
-                    <td style="color:var(--accent-emerald);"><strong>→ ${r.consequent}</strong></td>
-                    <td class="mono">${(r.support * 100).toFixed(2)}%</td>
-                    <td class="mono">${(r.confidence * 100).toFixed(1)}%</td>
-                    <td><span class="chip chip-purple mono">${r.lift.toFixed(2)}x</span></td>
-                    <td class="mono">${formatInt(r.ordersCount)} pedidos</td>
-                  </tr>
-                `
-                  )
-                  .join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        ${renderAssociationTab(association, state)}
       `
           : ''
       }
@@ -337,7 +284,7 @@ export function renderBusinessModelsView(store, state) {
           <div style="background:var(--bg-secondary); padding:1.15rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:1rem;">
             <h4 style="font-size:0.94rem;">🚚 Simulador Predictivo de Tiempo de Entrega y SLA Logístico (PN-07)</h4>
             <p style="font-size:0.78rem; color:var(--text-secondary);">
-              Ajusta los parámetros físicos y geográficos del pedido para estimar el tiempo de entrega y la probabilidad de superar la fecha prometida (tasa base Olist: 8,11%).
+              Ajusta los parámetros físicos y geográficos del pedido para estimar el tiempo de entrega y la probabilidad de superar la fecha prometida (tasa base Olist: 6,77%).
             </p>
 
             <div class="control-group">

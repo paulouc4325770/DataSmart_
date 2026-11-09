@@ -69,7 +69,7 @@ export function renderExecutiveDashboardView(store, state) {
       <strong>Nota Metodológica (Sección 7 del Informe):</strong>
       La métrica de <em>Ventas de artículos entregados (R$ 13.221.498,11)</em> suma exclusivamente la columna
       <code>price</code> en pedidos cuyo estado final es <code>delivered</code> (96.478 pedidos) y excluye
-      <code>freight_value</code>. La tasa de entregas tardías (8,11%) compara fechas reales vs estimadas sobre
+      <code>freight_value</code>. La tasa de entregas tardías (6,77%) compara fechas reales vs estimadas por día calendario sobre
       los 96.470 pedidos entregados con ambas fechas disponibles.
     </div>
 
@@ -235,7 +235,7 @@ export function renderExecutiveDashboardView(store, state) {
             <p>Sincronizado con <code>resultados/resumen_tablas.csv</code> (9 archivos analizados)</p>
           </div>
           <button class="btn" data-action="navigate" data-view="dictionary">
-            Ver Diccionario (53 cols) →
+            Ver Diccionario (52 cols) →
           </button>
         </div>
 
