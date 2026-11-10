@@ -1,19 +1,10 @@
-"""Análisis de Redes y Grafos de Relaciones Vendedor–Producto en Olist.
+"""Grafo bipartito no dirigido vendedor–producto de transacciones reales de Olist.
 
-Rol: Brandon — Análisis de relaciones y grafos (DataSmart - Minería de Datos UNMSM FISI).
-
-Ejecutar:
-    python src/grafos.py
-
-Población y significado:
-    - Red Bipartita Vendedor–Producto construida desde items_procesados.csv.
-    - Población: pedidos entregados con ítems válidos (110.197 ítems analizados).
-    - Arista (seller_id <-> product_id): representa la venta efectiva de un producto por
-      un comerciante en el marketplace, ponderada por la cantidad total de unidades despachadas.
+Ejecutar: python src/grafos.py
+El peso es número de filas de ítem entregado, no importe monetario.
 """
 
 import argparse
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 import platform
@@ -21,272 +12,215 @@ import platform
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import networkx as nx
 import numpy as np
 import pandas as pd
 
+from asociacion import guardar_csv, leer_csv, sha256
+
 
 ROOT = Path(__file__).resolve().parents[1]
-GRAFICOS = ROOT / 'resultados' / 'graficos'
-GRAFICOS.mkdir(parents=True, exist_ok=True)
+COLUMNAS = ['order_id', 'order_item_id', 'seller_id', 'product_id', 'order_status', 'price']
+INICIO = '<!-- INICIO RESULTADOS GRAFOS -->'
+FIN = '<!-- FIN RESULTADOS GRAFOS -->'
 
 
-def cargar_datos_items(ruta_items: Path, solo_entregados: bool = True):
-    """Carga los ítems procesados y extrae relaciones vendedor-producto."""
-    df = pd.read_csv(ruta_items, low_memory=False)
-    if solo_entregados:
-        df = df.loc[df['order_status'] == 'delivered'].copy()
-    return df
-
-
-def construir_grafo_bipartito(df_items: pd.DataFrame):
-    """Construye el grafo bipartito ponderado (Vendedor <-> Producto)."""
-    # 1. Agregar repeticiones para obtener peso_items y valor_total_brl
-    aristas_df = df_items.groupby(['seller_id', 'product_id']).agg(
-        peso_items=('order_item_id', 'count'),
-        valor_total_brl=('price', 'sum')
-    ).reset_index()
-    aristas_df['valor_total_brl'] = aristas_df['valor_total_brl'].round(2)
-
-    # 2. Catálogos descriptivos de nodos
-    cat_vendedores = df_items.groupby('seller_id').agg(
-        ciudad=('seller_city', 'first'),
-        estado=('seller_state', 'first')
-    ).reset_index()
-
-    cat_productos = df_items.groupby('product_id').agg(
-        categoria=('categoria_presentacion', 'first')
-    ).reset_index()
-
-    dict_sellers = {r['seller_id']: {'ciudad': r['ciudad'], 'estado': r['estado']} for _, r in cat_vendedores.iterrows()}
-    dict_products = {r['product_id']: {'categoria': r['categoria']} for _, r in cat_productos.iterrows()}
-
-    # 3. Instanciar NetworkX Graph
-    G = nx.Graph()
-    for s_id, info in dict_sellers.items():
-        G.add_node(s_id, tipo='vendedor', label=s_id[:8] + '...', estado=info['estado'], ciudad=info['ciudad'])
-
-    for p_id, info in dict_products.items():
-        G.add_node(p_id, tipo='producto', label=p_id[:8] + '...', categoria=info['categoria'])
-
-    for _, row in aristas_df.iterrows():
-        G.add_edge(
-            row['seller_id'],
-            row['product_id'],
-            weight=int(row['peso_items']),
-            monto=float(row['valor_total_brl'])
-        )
-
-    return G, aristas_df, dict_sellers, dict_products
-
-
-def calcular_metricas_red(G: nx.Graph):
-    """Calcula métricas de centralidad, componentes conexas y PageRank."""
-    # Componentes conexas
-    componentes = list(nx.connected_components(G))
-    componentes_ordenadas = sorted(componentes, key=len, reverse=True)
-    comp_map = {}
-    for comp_id, comp_nodes in enumerate(componentes_ordenadas, start=1):
-        for node in comp_nodes:
-            comp_map[node] = comp_id
-
-    # Grado simple y Grado ponderado (fuerza / volumen de ítems)
-    grados = dict(G.degree())
-    grados_ponderados = dict(G.degree(weight='weight'))
-
-    # PageRank ponderado
-    pagerank = nx.pagerank(G, weight='weight', max_iter=100)
-
-    # Consolidar dataframe de métricas por nodo
-    filas = []
-    for node, attrs in G.nodes(data=True):
-        filas.append({
-            'nodo': node,
-            'tipo_nodo': attrs.get('tipo', 'desconocido'),
-            'etiqueta_corta': attrs.get('label', node[:8]),
-            'grado': int(grados.get(node, 0)),
-            'grado_ponderado': int(grados_ponderados.get(node, 0)),
-            'pagerank': round(float(pagerank.get(node, 0.0)), 7),
-            'componente_id': int(comp_map.get(node, 0)),
-            'estado': attrs.get('estado', ''),
-            'ciudad': attrs.get('ciudad', ''),
-            'categoria': attrs.get('categoria', ''),
-        })
-
-    metricas_df = pd.DataFrame(filas).sort_values('pagerank', ascending=False)
-    return metricas_df, componentes_ordenadas, pagerank
-
-
-def extraer_subgrafo_legible(G: nx.Graph, metricas_df: pd.DataFrame, max_vendedores: int = 12, max_productos_por_vendedor: int = 4):
-    """Selecciona un subgrafo representativo y altamente legible para inspección e interfaz."""
-    top_sellers = metricas_df.loc[metricas_df['tipo_nodo'] == 'vendedor'].head(max_vendedores)['nodo'].tolist()
-
-    sub_nodes = set(top_sellers)
-    for s_node in top_sellers:
-        # Obtener los productos más vendidos de cada uno
-        vecinos = sorted(
-            G[s_node].items(),
-            key=lambda item: item[1]['weight'],
-            reverse=True
-        )[:max_productos_por_vendedor]
-        for p_node, _ in vecinos:
-            sub_nodes.add(p_node)
-
-    subG = G.subgraph(sub_nodes).copy()
-
-    # Formato JSON listo para la Web (D3 / SVG)
-    nodos_json = []
-    for n in subG.nodes():
-        attrs = subG.nodes[n]
-        deg = subG.degree[n]
-        deg_w = subG.degree(weight='weight')[n]
-        nodos_json.append({
-            'id': n,
-            'label': attrs.get('label', n[:8]),
-            'tipo': attrs.get('tipo'),
-            'categoria': attrs.get('categoria', ''),
-            'estado': attrs.get('estado', ''),
-            'ciudad': attrs.get('ciudad', ''),
-            'grado': int(deg),
-            'grado_ponderado': int(deg_w),
-        })
-
-    enlaces_json = []
-    for u, v, d in subG.edges(data=True):
-        enlaces_json.append({
-            'source': u,
-            'target': v,
-            'weight': int(d['weight']),
-            'monto': float(d['monto']),
-        })
-
-    subgrafo_dict = {
-        'total_nodos': len(nodos_json),
-        'total_enlaces': len(enlaces_json),
-        'criterio_seleccion': f'Top {max_vendedores} vendedores por PageRank y sus hasta {max_productos_por_vendedor} productos estrella',
-        'nodes': nodos_json,
-        'links': enlaces_json,
+def construir_grafo(items):
+    if items[['order_id', 'order_item_id']].isna().any().any() or items.duplicated(['order_id', 'order_item_id']).any():
+        raise ValueError('La clave order_id + order_item_id debe ser única y no nula; revisar preparación.')
+    entregados = items.loc[items['order_status'].eq('delivered').fillna(False)].copy()
+    sin_claves = entregados[['seller_id', 'product_id']].isna().any(axis=1)
+    elegibles = entregados.loc[~sin_claves].copy()
+    if elegibles.empty:
+        raise ValueError('No hay ítems entregados con seller_id y product_id para construir el grafo.')
+    # Un importe desconocido no impide contar un ítem ni se imputa como cero.
+    precios = pd.to_numeric(elegibles['price'], errors='coerce').astype(float)
+    elegibles['precio'] = precios.where(np.isfinite(precios) & precios.ge(0))
+    grupo = elegibles.groupby(['seller_id', 'product_id'], sort=True)
+    aristas = grupo.agg(peso=('order_item_id', 'size'), pedidos_distintos=('order_id', 'nunique'),
+                        importes_conocidos=('precio', 'count'))
+    aristas['valor_articulos_conocido'] = grupo['precio'].sum(min_count=1)
+    aristas['importes_desconocidos'] = aristas['peso'] - aristas['importes_conocidos']
+    aristas = aristas.reset_index()
+    grafo = nx.Graph()
+    # Prefijos impiden confundir identificadores iguales entre las dos particiones.
+    for vendedor in sorted(elegibles['seller_id'].unique()):
+        grafo.add_node('v:' + vendedor, identificador=vendedor, tipo_nodo='vendedor', bipartite=0)
+    for producto in sorted(elegibles['product_id'].unique()):
+        grafo.add_node('p:' + producto, identificador=producto, tipo_nodo='producto', bipartite=1)
+    grafo.add_weighted_edges_from(
+        (('v:' + fila.seller_id, 'p:' + fila.product_id, int(fila.peso)) for fila in aristas.itertuples()),
+        weight='peso',
+    )
+    poblacion = {
+        'items_entrada': len(items), 'items_entregados': len(entregados),
+        'items_otros_estados_excluidos': len(items) - len(entregados),
+        'items_entregados_sin_claves_excluidos': int(sin_claves.sum()),
+        'items_utilizados': len(elegibles), 'pedidos_utilizados': int(elegibles['order_id'].nunique()),
+        'importes_desconocidos': int(elegibles['precio'].isna().sum()),
     }
+    if int(aristas['peso'].sum()) != len(elegibles) or not nx.is_bipartite(grafo):
+        raise ValueError('Los pesos no concilian con los ítems o el grafo no es bipartito.')
+    return grafo, aristas, poblacion
 
-    return subG, subgrafo_dict
+
+def calcular_metricas(grafo):
+    componentes = sorted(nx.connected_components(grafo), key=lambda c: (-len(c), min(c)))
+    pertenencia = {nodo: i for i, componente in enumerate(componentes) for nodo in componente}
+    # Convergencia estricta: NetworkX usa len(G)*tol como criterio L1.
+    pagerank = nx.pagerank(grafo, alpha=.85, weight='peso', max_iter=1000, tol=1e-12)
+    grados = dict(grafo.degree())
+    ponderados = dict(grafo.degree(weight='peso'))
+    metricas = pd.DataFrame([
+        {'nodo_id': nodo, 'identificador': atributos['identificador'], 'tipo_nodo': atributos['tipo_nodo'],
+         'grado': grados[nodo], 'grado_ponderado': ponderados[nodo],
+         'pagerank': pagerank[nodo], 'componente': pertenencia[nodo]}
+        for nodo, atributos in sorted(grafo.nodes(data=True))
+    ])
+    resumen_componentes = pd.DataFrame([
+        {'componente': i, 'nodos': len(componente),
+         'vendedores': sum(grafo.nodes[n]['tipo_nodo'] == 'vendedor' for n in componente),
+         'productos': sum(grafo.nodes[n]['tipo_nodo'] == 'producto' for n in componente),
+         'aristas': grafo.subgraph(componente).number_of_edges()}
+        for i, componente in enumerate(componentes)
+    ])
+    if not np.isfinite(metricas['pagerank']).all() or not np.isclose(metricas['pagerank'].sum(), 1, atol=1e-9):
+        raise ValueError('PageRank no es finito o no suma uno.')
+    if metricas['grado'].sum() != 2 * grafo.number_of_edges():
+        raise ValueError('Los grados no concilian con las aristas.')
+    return metricas, resumen_componentes
 
 
-def exportar_grafico_red(subG: nx.Graph, out_graficos: Path):
-    """Genera la visualización gráfica de la red legible."""
-    fig, ax = plt.subplots(figsize=(13, 8.5))
-    pos = nx.spring_layout(subG, k=0.45, seed=42)
-
-    vendedores = [n for n, d in subG.nodes(data=True) if d.get('tipo') == 'vendedor']
-    productos = [n for n, d in subG.nodes(data=True) if d.get('tipo') == 'producto']
-
-    # Dibujar aristas con grosor proporcional al peso
-    pesos = [subG[u][v]['weight'] for u, v in subG.edges()]
-    max_p = max(pesos) if pesos else 1
-    grosores = [1.2 + (w / max_p) * 4.5 for w in pesos]
-
-    nx.draw_networkx_edges(subG, pos, width=grosores, alpha=0.35, edge_color='#64748b', ax=ax)
-
-    # Dibujar nodos Vendedores (Azul) y Productos (Esmeralda/Verde)
-    nx.draw_networkx_nodes(subG, pos, nodelist=vendedores, node_color='#2563eb', node_size=550, alpha=0.9, label='Vendedores (Hubs)', ax=ax)
-    nx.draw_networkx_nodes(subG, pos, nodelist=productos, node_color='#10b981', node_size=280, alpha=0.85, label='Productos Estrella', ax=ax)
-
-    # Etiquetas de vendedores
-    labels_vendedores = {v: f"Vend {subG.nodes[v]['estado']}\n({subG.nodes[v]['label']})" for v in vendedores}
-    nx.draw_networkx_labels(subG, pos, labels=labels_vendedores, font_size=8, font_weight='bold', font_color='#0f172a', ax=ax)
-
-    ax.set_title('Subgrafo Bipartito Olist: Vendedores Principales y Productos Más Despachados', fontsize=12, fontweight='bold', pad=14)
-    ax.legend(loc='upper right', frameon=True, fontsize=9.5)
+def graficar(grafo, metricas, carpeta, top_vendedores=5, productos_por_vendedor=12):
+    carpeta.mkdir(parents=True, exist_ok=True)
+    vendedores = metricas.loc[metricas['tipo_nodo'].eq('vendedor')].sort_values(
+        ['grado_ponderado', 'identificador'], ascending=[False, True],
+    )
+    principales = vendedores.head(top_vendedores)['nodo_id'].tolist()
+    seleccionados = set(principales)
+    for vendedor in principales:
+        vecinos = sorted(grafo[vendedor], key=lambda n: (-grafo[vendedor][n]['peso'], n))
+        seleccionados.update(vecinos[:productos_por_vendedor])
+    subgrafo = grafo.subgraph(sorted(seleccionados)).copy()
+    posiciones = nx.spring_layout(subgrafo, seed=42, weight='peso', iterations=80)
+    fig, ax = plt.subplots(figsize=(12, 8))
+    nx.draw_networkx_edges(subgrafo, posiciones, ax=ax, alpha=.35,
+                           width=[.5 + np.log1p(d['peso']) / 2 for _, _, d in subgrafo.edges(data=True)])
+    for tipo, color, base in [('vendedor', '#c0392b', 350), ('producto', '#2874a6', 45)]:
+        nodos = [n for n, d in subgrafo.nodes(data=True) if d['tipo_nodo'] == tipo]
+        nx.draw_networkx_nodes(subgrafo, posiciones, nodelist=nodos, node_color=color,
+                               node_size=[base + 10 * np.log1p(grafo.degree(n, weight='peso')) for n in nodos], ax=ax)
+    pesos = dict(grafo.degree(weight='peso'))
+    productos = sorted((n for n in subgrafo if n.startswith('p:')), key=lambda n: (-pesos[n], n))[:5]
+    etiquetas = {n: n[:2] + grafo.nodes[n]['identificador'][:8] for n in principales + productos}
+    nx.draw_networkx_labels(subgrafo, posiciones, labels=etiquetas, font_size=8, ax=ax)
+    ax.set_title(f'Subgrafo comercial: {len(principales)} vendedores de mayor volumen\n'
+                 f'Hasta {productos_por_vendedor} productos por vendedor; {subgrafo.number_of_nodes()} nodos')
+    ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=c, label=t)
+                        for t, c in [('Vendedor', '#c0392b'), ('Producto', '#2874a6')]])
     ax.axis('off')
-
     fig.tight_layout()
-    fig.savefig(out_graficos / '06_grafo_red_vendedor_producto.png', dpi=170)
+    fig.savefig(carpeta / 'grafo_vendedores_productos.png', dpi=160)
     plt.close(fig)
+    top = vendedores.head(10).iloc[::-1]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    barras = ax.barh(top['identificador'].str[:10], top['grado_ponderado'], color='#2874a6')
+    ax.bar_label(barras, padding=3)
+    ax.set(xlabel='Grado ponderado: ítems entregados', ylabel='seller_id (primeros 10 caracteres)',
+           title='Diez principales vendedores por volumen de ítems')
+    ax.margins(x=.15)
+    fig.tight_layout()
+    fig.savefig(carpeta / 'grafo_principales_vendedores.png', dpi=160)
+    plt.close(fig)
+    return {'top_vendedores': top_vendedores, 'productos_por_vendedor': productos_por_vendedor,
+            'nodos': subgrafo.number_of_nodes(), 'aristas': subgrafo.number_of_edges(),
+            'nodos_seleccionados': sorted(subgrafo), 'semilla_layout': 42,
+            'criterio': 'Top vendedores por grado ponderado; top productos por peso de su arista; subgrafo inducido.'}
 
 
-def ejecutar(
-    ruta_items: Path = ROOT / 'data' / 'processed' / 'items_procesados.csv',
-    salida_dir: Path = ROOT / 'resultados',
-    solo_entregados: bool = True,
-):
-    salida_dir.mkdir(parents=True, exist_ok=True)
-    graficos_dir = salida_dir / 'graficos'
-    graficos_dir.mkdir(parents=True, exist_ok=True)
+def publicar_resumen(salida, texto):
+    ruta = salida / 'docs' / 'clustering_y_grafos.md'
+    if ruta.is_file():
+        contenido = ruta.read_text(encoding='utf-8')
+        if INICIO in contenido and FIN in contenido:
+            antes, resto = contenido.split(INICIO, 1)
+            _, despues = resto.split(FIN, 1)
+            ruta.write_text(antes + INICIO + '\n\n' + texto + '\n\n' + FIN + despues, encoding='utf-8')
 
-    print(f"Cargando ítems desde {ruta_items} (solo entregados: {solo_entregados})...")
-    df_items = cargar_datos_items(ruta_items, solo_entregados=solo_entregados)
-    print(f"Ítems analizados: {len(df_items):,}")
 
-    G, aristas_df, _, _ = construir_grafo_bipartito(df_items)
-    n_vendedores = len([n for n, d in G.nodes(data=True) if d.get('tipo') == 'vendedor'])
-    n_productos = len([n for n, d in G.nodes(data=True) if d.get('tipo') == 'producto'])
-    print(f"Red construida: {G.number_of_nodes():,} nodos ({n_vendedores:,} vendedores, {n_productos:,} productos) y {G.number_of_edges():,} aristas.")
-
-    print("Calculando centralidades, componentes y PageRank ponderado...")
-    metricas_df, componentes, pagerank = calcular_metricas_red(G)
-
-    print(f"Número de componentes conexas: {len(componentes):,}")
-    print(f"Componente gigante: {len(componentes[0]):,} nodos ({round(len(componentes[0])/G.number_of_nodes()*100, 2)}% de la red).")
-
-    # Extraer y exportar subgrafo legible
-    subG, subgrafo_dict = extraer_subgrafo_legible(G, metricas_df)
-    print(f"Subgrafo legible extraído: {subG.number_of_nodes()} nodos y {subG.number_of_edges()} enlaces.")
-
-    # Guardar archivos CSV y JSON
-    aristas_df.to_csv(salida_dir / 'grafo_aristas.csv', index=False, encoding='utf-8-sig')
-    metricas_df.to_csv(salida_dir / 'grafo_metricas.csv', index=False, encoding='utf-8-sig')
-
-    with open(salida_dir / 'grafo_subgrafo.json', 'w', encoding='utf-8') as f:
-        json.dump(subgrafo_dict, f, indent=2, ensure_ascii=False)
-
-    # Generar visualización
-    exportar_grafico_red(subG, graficos_dir)
-
-    top_vendedores = metricas_df.loc[metricas_df['tipo_nodo'] == 'vendedor'].head(5).to_dict(orient='records')
-    top_productos = metricas_df.loc[metricas_df['tipo_nodo'] == 'producto'].head(5).to_dict(orient='records')
-
+def ejecutar(items_csv, salida, top_vendedores=5, productos_por_vendedor=12):
+    items = leer_csv(items_csv, COLUMNAS, 'items_procesados.csv')
+    grafo, aristas, poblacion = construir_grafo(items)
+    metricas, componentes = calcular_metricas(grafo)
+    peso_total = int(aristas['peso'].sum())
+    if metricas['grado_ponderado'].sum() != 2 * peso_total:
+        raise ValueError('La suma de grados ponderados no coincide con dos veces el peso de aristas.')
+    resultados = salida / 'resultados'
+    guardar_csv(aristas, resultados / 'grafo_aristas.csv')
+    guardar_csv(metricas, resultados / 'grafo_metricas.csv')
+    guardar_csv(componentes, resultados / 'grafo_componentes.csv')
+    visualizacion = graficar(grafo, metricas, resultados / 'graficos', top_vendedores, productos_por_vendedor)
     metadata = {
-        'ejecutado_en_utc': datetime.now(timezone.utc).isoformat(),
-        'python': platform.python_version(),
-        'poblacion': 'pedidos entregados con ítems',
-        'items_analizados': len(df_items),
-        'total_nodos': G.number_of_nodes(),
-        'total_vendedores': n_vendedores,
-        'total_productos': n_productos,
-        'total_aristas': G.number_of_edges(),
-        'es_bipartito': True,
-        'componentes_conexas': len(componentes),
-        'tamano_componente_gigante': len(componentes[0]),
-        'densidad': round(nx.density(G), 7),
-        'top_vendedores_pagerank': top_vendedores,
-        'top_productos_pagerank': top_productos,
-        'subgrafo': {
-            'nodos': subG.number_of_nodes(),
-            'aristas': subG.number_of_edges(),
-            'archivo_json': 'grafo_subgrafo.json',
-            'archivo_png': '06_grafo_red_vendedor_producto.png',
-        },
+        'fuente': str(items_csv), 'sha256_entrada': sha256(items_csv),
+        'python': platform.python_version(), 'networkx': nx.__version__, 'pandas': pd.__version__,
+        'numpy': np.__version__, 'matplotlib': matplotlib.__version__,
+        'poblacion': poblacion, 'nodos': grafo.number_of_nodes(), 'aristas': grafo.number_of_edges(),
+        'vendedores': int(metricas['tipo_nodo'].eq('vendedor').sum()),
+        'productos': int(metricas['tipo_nodo'].eq('producto').sum()),
+        'componentes': len(componentes), 'peso_total': peso_total,
+        'pagerank': {'alpha': .85, 'tol': 1e-12, 'max_iter': 1000, 'weight': 'peso', 'suma': float(metricas['pagerank'].sum())},
+        'visualizacion': visualizacion,
     }
-
-    with open(salida_dir / 'grafo_metadata.json', 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-    print(f"\nResultados y métricas del grafo guardados en: {salida_dir}")
-    print(f"Gráfico del subgrafo generado en: {graficos_dir / '06_grafo_red_vendedor_producto.png'}")
+    (resultados / 'grafos_metadata.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    lineas = [
+        f'**Red real: {metadata["nodos"]:,} nodos ({metadata["vendedores"]:,} vendedores y {metadata["productos"]:,} productos), {metadata["aristas"]:,} aristas y {len(componentes):,} componentes.**',
+        f'Ítems: {poblacion["items_entrada"]:,} de entrada, {poblacion["items_entregados"]:,} entregados, {poblacion["items_utilizados"]:,} utilizados; peso total {peso_total:,}. '
+        f'Excluidos: {poblacion["items_otros_estados_excluidos"]:,} de otros estados y {poblacion["items_entregados_sin_claves_excluidos"]:,} entregados sin claves. '
+        f'Importes desconocidos: {poblacion["importes_desconocidos"]:,}; no afectan al conteo de ítems.',
+        '\nPrincipales componentes:\n\n| Componente | Nodos | Vendedores | Productos | Aristas |\n|---:|---:|---:|---:|---:|',
+    ]
+    for fila in componentes.head(10).itertuples():
+        lineas.append(f'| {fila.componente} | {fila.nodos} | {fila.vendedores} | {fila.productos} | {fila.aristas} |')
+    for tipo in ['vendedor', 'producto']:
+        top = metricas.loc[metricas['tipo_nodo'].eq(tipo)].sort_values(['grado_ponderado', 'identificador'], ascending=[False, True]).head(5)
+        lineas += [f'\nPrincipales nodos de tipo **{tipo}** por ítems:\n',
+                   '| Identificador | Grado | Ítems | PageRank | Componente |\n|---|---:|---:|---:|---:|']
+        for fila in top.itertuples():
+            lineas.append(f'| `{fila.identificador}` | {fila.grado} | {fila.grado_ponderado} | {fila.pagerank:.7f} | {fila.componente} |')
+        lider = top.iloc[0]
+        significado = 'productos distintos vendidos' if tipo == 'vendedor' else 'vendedores asociados'
+        lineas.append(f'\nEl {tipo} `{lider["identificador"]}` lidera el volumen con {lider["grado_ponderado"]:,} ítems y {lider["grado"]:,} {significado}. No equivale a liderar ingresos o calidad.')
+        central = metricas.loc[metricas['tipo_nodo'].eq(tipo)].sort_values(['pagerank', 'identificador'], ascending=[False, True]).iloc[0]
+        lineas.append(f'El mayor PageRank dentro de este tipo corresponde a `{central["identificador"]}` ({central["pagerank"]:.7f}); es centralidad estructural ponderada, no reputación.')
+    lineas += ['\nRelaciones más intensas:\n\n| seller_id | product_id | Ítems | Pedidos distintos |\n|---|---|---:|---:|']
+    for fila in aristas.sort_values(['peso', 'seller_id', 'product_id'], ascending=[False, True, True]).head(5).itertuples():
+        lineas.append(f'| `{fila.seller_id}` | `{fila.product_id}` | {fila.peso} | {fila.pedidos_distintos} |')
+    productos_compartidos = int(metricas.loc[metricas['tipo_nodo'].eq('producto'), 'grado'].gt(1).sum())
+    lineas += [f'\nHay {productos_compartidos:,} productos asociados a más de un vendedor. El componente mayor reúne {int(componentes.iloc[0]["nodos"]):,} nodos ({componentes.iloc[0]["nodos"] / len(metricas) * 100:.2f}% de la red).',
+               f'Visualización: top {top_vendedores} vendedores por ítems y hasta {productos_por_vendedor} productos por vendedor según peso de arista; subgrafo inducido de {visualizacion["nodos"]} nodos y {visualizacion["aristas"]} aristas; semilla 42. Los identificadores completos están en los CSV.',
+               'Conclusión: las conexiones reflejan asociaciones comerciales observadas y concentración de ítems; no son rutas logísticas, preferencias de compradores ni prueba de competencia. Las métricas se calcularon sobre toda la red, no sobre el dibujo.']
+    texto = '\n\n'.join(lineas[:2]) + '\n' + '\n'.join(lineas[2:])
+    (resultados / 'grafos_resumen.md').write_text(texto + '\n', encoding='utf-8')
+    publicar_resumen(salida, texto)
+    print(f'Grafo: {metadata["nodos"]:,} nodos; {metadata["aristas"]:,} aristas; {len(componentes):,} componentes; peso total={peso_total:,}.')
+    print(f'CSV, metadatos y gráficos: {resultados}')
     return metadata
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--items', type=Path, default=ROOT / 'data' / 'processed' / 'items_procesados.csv', help='Ruta a items_procesados.csv')
-    parser.add_argument('--salida-dir', type=Path, default=ROOT / 'resultados', help='Directorio de salida')
-    parser.add_argument('--todos-los-estados', action='store_true', help='Incluir todos los estados (no solo delivered)')
+    parser.add_argument('--items', type=Path, default=ROOT / 'data/processed/items_procesados.csv')
+    parser.add_argument('--output-root', type=Path, default=ROOT)
+    parser.add_argument('--top-vendedores', type=int, default=5, help='Entre 1 y 10 vendedores para el dibujo.')
+    parser.add_argument('--productos-por-vendedor', type=int, default=12, help='Entre 1 y 20 productos por vendedor para el dibujo.')
     args = parser.parse_args()
-
-    ejecutar(
-        ruta_items=args.items.resolve(),
-        salida_dir=args.salida_dir.resolve(),
-        solo_entregados=not args.todos_los_estados,
-    )
+    if not 1 <= args.top_vendedores <= 10 or not 1 <= args.productos_por_vendedor <= 20:
+        parser.error('Visualización limitada a 1–10 vendedores y 1–20 productos por vendedor.')
+    try:
+        ejecutar(args.items.resolve(), args.output_root.resolve(), args.top_vendedores, args.productos_por_vendedor)
+    except (OSError, ValueError, nx.PowerIterationFailedConvergence) as error:
+        parser.exit(1, f'Error de grafos: {error}\n')
 
 
 if __name__ == '__main__':

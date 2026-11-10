@@ -89,6 +89,45 @@ Las pruebas utilizan datos pequeños y no requieren descargar Olist:
 python -m unittest discover -s tests -v
 ```
 
+## Clustering RFM y grafos — entrega de Anderson
+
+Instalar las dependencias y, si aún no existen las tablas procesadas, proporcionar
+`data/raw/archive.zip` y ejecutar la preparación anterior. Después:
+
+```powershell
+python src/clustering.py
+python src/grafos.py
+```
+
+En el entorno virtual local, usar `.\.venv\Scripts\python.exe` en lugar de
+`python`. Los scripts aceptan `--help`, rutas de entrada y `--output-root`;
+las rutas por defecto se resuelven desde el repositorio.
+
+- RFM utiliza compradores de pedidos entregados, importes de artículos en BRL y
+  una referencia temporal reproducible. Compara K-Means k=2–6 con una muestra
+  Silhouette fija de hasta 1.800 compradores por defecto, nunca más de 2.000.
+- El grafo bipartito vendedor–producto usa ítems entregados; peso = ítems de cada
+  relación. Calcula métricas sobre toda la red y dibuja solo un subgrafo legible.
+- Las salidas se guardan en `resultados/`: `clientes_clusters.csv`,
+  `perfiles_clusters.csv`, `evaluacion_clustering.csv`, `grafo_aristas.csv`,
+  `grafo_metricas.csv`, distribuciones, componentes, metadatos y resúmenes.
+  Los PNG se guardan en `resultados/graficos/` sin sustituir los gráficos del EDA.
+- Cada script actualiza su bloque calculado en el informe si existe en la raíz
+  de salida. El frontend no se modifica ni se conecta automáticamente.
+
+**Resultados reales verificados:** 93.358 compradores; **k=2**, Silhouette
+**0,7111425** y Davies-Bouldin **0,4765102**. El grafo tiene **35.186 nodos**,
+**33.659 aristas**, **2.320 componentes** y peso total **110.197 ítems**.
+Los CSV, metadatos y seis PNG están disponibles en las carpetas indicadas.
+Los datos originales/procesados y el entorno virtual siguen excluidos de Git;
+quien clone el repositorio debe regenerar las entradas con el ZIP original.
+
+Documentación: [informe y contrato para Paulo](docs/clustering_y_grafos.md),
+[guion de seis diapositivas](docs/presentacion_anderson.md) y
+[handoff para Brandon](docs/handoff_brandon.md). La distribución vigente asigna
+a Brandon **series temporales, regresión y evaluación predictiva**, todavía
+pendientes y no implementadas por este bloque.
+
 ## Plataforma Web Frontend (`frontend/`)
 
 El repositorio incluye la interfaz web analítica interactiva en la carpeta `frontend/`, con vistas del EDA, diccionario, calidad de datos y las 10 preguntas de negocio (`PN-01` a `PN-10`). El conector actual consulta la API pero las vistas utilizan el store local; Paulo tiene pendiente integrar las salidas calculadas y actualizar las etiquetas y simulaciones del prototipo.

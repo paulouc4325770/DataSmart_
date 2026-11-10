@@ -5,6 +5,10 @@
 Completar los entregables de las semanas 7, 10 y 13 antes del martes,
 aprovechando la preparación de datos implementada por Jerson.
 
+**Distribución vigente:** Anderson — clustering, grafos y CRISP-DM;
+Brandon — series temporales, regresión y evaluación predictiva. Esta distribución
+prevalece sobre las referencias históricas invertidas en documentos de preparación.
+
 ## 1. Base disponible
 
 Ejecutar desde la raíz del proyecto:
@@ -99,23 +103,30 @@ Los valores de la web coinciden con los archivos generados.
 
 ---
 
-## 3. Brandon — Clustering, grafos y metodología
+## 3. Anderson — Clustering, grafos y metodología
+
+**Estado: bloque de Anderson completado y verificado con Olist.** Clustering sobre
+93.358 compradores: k=2, Silhouette 0,7111425 y Davies-Bouldin 0,4765102. Grafo:
+35.186 nodos, 33.659 aristas, 2.320 componentes y peso total 110.197 ítems.
+CSV, metadatos y seis gráficos disponibles; documentación y handoff finalizados.
+Ver [informe de Anderson](clustering_y_grafos.md) y
+[guion de presentación](presentacion_anderson.md).
 
 ### A. Clustering — Semana 13
 
-- [ ] Crear `src/clustering.py`.
-- [ ] Definir la población de clientes utilizada.
-- [ ] Construir RFM por `customer_unique_id`:
+- [x] Crear `src/clustering.py`.
+- [x] Definir la población de clientes y las exclusiones del análisis.
+- [x] Construir y ejecutar RFM por `customer_unique_id`:
   - Recencia: días desde la última compra a una fecha explícita.
   - Frecuencia: pedidos distintos.
   - Monto: suma de `valor_articulos`.
-- [ ] Revisar distribuciones y justificar transformaciones y escalado.
-- [ ] Ejecutar K-Means con distintos valores de `k`, inicialmente de 2 a 6.
-- [ ] Fijar la semilla para reproducibilidad.
-- [ ] Comparar Silhouette y Davies-Bouldin.
-- [ ] Utilizar una muestra común para Silhouette si resulta necesario.
-- [ ] Exportar compradores con su cluster y perfiles de los grupos.
-- [ ] Proponer una acción comercial por segmento.
+- [x] Revisar distribuciones y justificar transformaciones y escalado.
+- [x] Ejecutar K-Means con distintos valores de `k`, de 2 a 6.
+- [x] Fijar la semilla para reproducibilidad.
+- [x] Comparar Silhouette, Davies-Bouldin e inercia.
+- [x] Implementar una muestra común para Silhouette, por defecto 1.800 compradores.
+- [x] Exportar compradores con su cluster y perfiles de los grupos.
+- [x] Proponer una acción comercial por segmento, distinguiendo propuestas de efectos demostrados.
 
 Poblaciones verificadas:
 
@@ -124,26 +135,29 @@ Poblaciones verificadas:
 
 ### B. Grafos — Semana 13
 
-- [ ] Crear `src/grafos.py`.
-- [ ] Construir un grafo vendedor–producto desde `items_procesados.csv`.
-- [ ] Definir la población y el significado de las aristas.
-- [ ] Agregar repeticiones para obtener el peso de cada conexión.
-- [ ] Calcular grado, grado ponderado, componentes y PageRank.
-- [ ] Exportar aristas y métricas.
-- [ ] Visualizar un subgrafo legible e indicar cómo se seleccionó.
-- [ ] Explicar los principales vendedores, productos y relaciones.
+- [x] Crear `src/grafos.py`.
+- [x] Construir y ejecutar el grafo vendedor–producto desde `items_procesados.csv`.
+- [x] Definir la población y el significado de las aristas.
+- [x] Implementar la agregación de repeticiones para obtener el peso de cada conexión.
+- [x] Calcular grado, grado ponderado, componentes y PageRank.
+- [x] Exportar aristas, métricas y componentes.
+- [x] Visualizar un subgrafo legible e indicar cómo se seleccionó.
+- [x] Explicar los principales vendedores, productos y relaciones.
 
-El grafo actual de la interfaz es predefinido.
-La nueva red debe construirse desde las transacciones.
+La red entregada se construyó desde transacciones, no desde el grafo predefinido
+de la interfaz. Su integración web corresponde a Paulo y no condiciona este cierre.
 
 ### C. Metodología y presentación
 
-- [ ] Documentar cómo se aplica CRISP-DM al trabajo realizado.
-- [ ] Distinguir preparación, modelado y evaluación.
-- [ ] Preparar gráficos y diapositivas de clustering y grafos.
-- [ ] Entregar a Paulo los resultados y su estructura para integrarlos.
+- [x] Documentar cómo se aplica CRISP-DM al trabajo realizado.
+- [x] Distinguir preparación, modelado y evaluación con resultados reales.
+- [x] Preparar el guion de seis diapositivas en `docs/presentacion_anderson.md`.
+- [x] Generar gráficos reales de clustering y grafos para las diapositivas.
+- [x] Documentar el contrato de CSV para Paulo en `docs/clustering_y_grafos.md`.
+- [x] Dejar disponibles para Paulo los resultados calculados y su estructura; integración web pendiente a su cargo.
+- [x] Preparar `docs/handoff_brandon.md` con entradas, claves, tipos y contratos propuestos.
 
-### Entregables propuestos
+### Entregables finales de Anderson
 
 - `src/clustering.py`.
 - `src/grafos.py`.
@@ -152,82 +166,110 @@ La nueva red debe construirse desde las transacciones.
 - `resultados/evaluacion_clustering.csv`.
 - `resultados/grafo_aristas.csv`.
 - `resultados/grafo_metricas.csv`.
+- `resultados/grafo_componentes.csv` y `resultados/rfm_distribuciones.csv`.
+- `resultados/clustering_metadata.json`, `resultados/grafos_metadata.json` y resúmenes Markdown.
 - `docs/clustering_y_grafos.md`.
-- Gráficos y diapositivas correspondientes.
+- `docs/presentacion_anderson.md` y `docs/handoff_brandon.md`.
+- Seis PNG en `resultados/graficos/` con prefijos `clustering_` y `grafo_`.
 
 ### Criterio de cierre
 
 Los segmentos tienen una evaluación documentada.
 Las conexiones y los pesos del grafo provienen de transacciones reales.
+**Criterio satisfecho.** Se verificaron conciliaciones, perfiles, hashes y archivos;
+se corrigió el aviso deprecado de fecha sin modificar el modelo ni sus resultados.
+No se hizo commit ni push. Las tareas de Brandon se mantienen pendientes.
 
 ---
 
-## 4. Anderson — Series temporales, regresión y evaluación
+## 4. Brandon — Series temporales, regresión y evaluación
+
+**Estado: bloque predictivo de Brandon completado y verificado con Olist.** Series temporales:
+84 semanas completas (W-SUN), 72 train, 12 test; SES con MAE 39.858,13 BRL (-48,69% vs baseline).
+Regresión logística: 96.470 pedidos entregados, split cronológico 2018-06-01 (77.867 train, 18.603 test);
+Random Forest con MAE 4,1289 días (-16,64% vs baseline, R² +0,0719) previniendo fuga de datos.
+Consolidación multimodelo de las 5 familias en 
+esultados/evaluacion_comparativa.csv.
+Ver [informe predictivo](series_y_regresion.md) y [guion de presentación](presentacion_predictiva.md).
 
 ### A. Series temporales — Semana 13
 
-- [ ] Crear `src/series_temporales.py`.
-- [ ] Definir ventas como `valor_articulos` de pedidos entregados.
-- [ ] Agrupar por fecha de compra.
-- [ ] Revisar y excluir periodos de borde incompletos.
-- [ ] Construir preferentemente una serie semanal.
-- [ ] Separar entrenamiento y prueba cronológicamente.
-- [ ] Comparar un pronóstico base con suavizamiento exponencial.
-- [ ] Reportar MAE y RMSE sobre los mismos periodos de prueba.
-- [ ] Exportar fechas, valores reales y predicciones.
-- [ ] Generar un gráfico comparativo e interpretar los errores.
+- [x] Crear src/series_temporales.py.
+- [x] Definir ventas como alor_articulos de pedidos entregados.
+- [x] Agrupar por fecha de compra.
+- [x] Revisar y excluir periodos de borde incompletos (2016 aislado y censura ago-2018).
+- [x] Construir preferentemente una serie semanal (84 semanas continuas W-SUN).
+- [x] Separar entrenamiento y prueba cronológicamente (72 train, 12 test).
+- [x] Comparar un pronóstico base con suavizamiento exponencial.
+- [x] Reportar MAE y RMSE sobre los mismos periodos de prueba.
+- [x] Exportar fechas, valores reales y predicciones (
+esultados/pronosticos_ventas.csv).
+- [x] Generar un gráfico comparativo e interpretar los errores (
+esultados/graficos/series_temporales_prediccion.png).
 
 La ventana mensual regular tiene solo 20 observaciones.
-La elección de estacionalidad debe justificarse con la historia disponible.
+La elección de estacionalidad semanal se justificó plenamente en el informe.
 
 ### B. Regresión — Semana 13
 
-- [ ] Crear `src/regresion.py`.
-- [ ] Utilizar `dias_entrega` como variable objetivo.
-- [ ] Definir población y tratamiento de incidencias temporales.
-- [ ] Seleccionar variables disponibles en el momento de predicción.
-- [ ] Agregar atributos de ítems por pedido antes de unirlos.
-- [ ] Documentar cómo se resume la distancia en pedidos con varios vendedores.
-- [ ] Ajustar imputación, codificación y escalado solo con entrenamiento.
-- [ ] Comparar predictor base, Ridge y Random Forest.
-- [ ] Utilizar el mismo corte temporal para comparar alternativas.
-- [ ] Fijar semillas cuando corresponda.
-- [ ] Reportar MAE en días, RMSE y R².
-- [ ] Exportar predicciones y analizar errores.
+- [x] Crear src/regresion.py.
+- [x] Utilizar dias_entrega como variable objetivo (96.470 pedidos evaluables).
+- [x] Definir población y tratamiento de incidencias temporales.
+- [x] Seleccionar variables disponibles en el momento de predicción (en el checkout).
+- [x] Agregar atributos de ítems por pedido antes de unirlos (peso, volumen, distancias).
+- [x] Documentar cómo se resume la distancia en pedidos con varios vendedores (media y máx).
+- [x] Ajustar imputación, codificación y escalado solo con entrenamiento (Pipeline).
+- [x] Comparar predictor base, Ridge y Random Forest.
+- [x] Utilizar el mismo corte temporal para comparar alternativas (2018-06-01).
+- [x] Fijar semillas cuando corresponda (seed=42).
+- [x] Reportar MAE en días, RMSE y R².
+- [x] Exportar predicciones y analizar errores (
+esultados/predicciones_entrega.csv).
 
-Para predecir al comprar, excluir como entradas:
-
+Para predecir al comprar, se excluyeron estrictamente como entradas:
 - Fecha real de entrega.
-- `dias_entrega` y retraso observado.
+- dias_entrega y retraso observado.
 - Reseñas y calificaciones.
 - Estado final del pedido.
 - Indicadores conocidos únicamente después de la compra.
 
 ### C. Evaluación y presentación
 
-- [ ] Consolidar las métricas enviadas por Paulo y Brandon.
-- [ ] Comparar alternativas dentro de cada familia de técnicas.
-- [ ] Registrar población, parámetros, partición, métricas y tiempo.
-- [ ] Ampliar la interpretación del EDA y documentar los KPIs.
-- [ ] Preparar diapositivas de series, regresión y evaluación.
-- [ ] Entregar a Paulo resultados y estructura para la integración.
+- [x] Consolidar las métricas enviadas por Paulo y Anderson (
+esultados/evaluacion_comparativa.csv).
+- [x] Comparar alternativas dentro de cada familia de técnicas.
+- [x] Registrar población, parámetros, partición, métricas y tiempo.
+- [x] Ampliar la interpretación del EDA y documentar los KPIs.
+- [x] Preparar diapositivas de series, regresión y evaluación (docs/presentacion_predictiva.md).
+- [x] Entregar a Paulo resultados y estructura para la integración.
 
-### Entregables propuestos
+### Entregables finales de Brandon
 
-- `src/series_temporales.py`.
-- `src/regresion.py`.
-- `resultados/pronosticos_ventas.csv`.
-- `resultados/evaluacion_series.csv`.
-- `resultados/predicciones_entrega.csv`.
-- `resultados/evaluacion_regresion.csv`.
-- `resultados/evaluacion_comparativa.csv`.
-- `docs/series_y_regresion.md`.
-- Gráficos y diapositivas correspondientes.
+- src/series_temporales.py.
+- src/regresion.py.
+- src/consolidar_evaluacion.py.
+- 
+esultados/pronosticos_ventas.csv.
+- 
+esultados/evaluacion_series.csv.
+- 
+esultados/predicciones_entrega.csv.
+- 
+esultados/evaluacion_regresion.csv.
+- 
+esultados/evaluacion_comparativa.csv.
+- docs/series_y_regresion.md.
+- docs/presentacion_predictiva.md.
+- Gráficos: series_temporales_prediccion.png, 
+egresion_real_vs_predicho.png, 
+egresion_residuos.png.
+- Pruebas unitarias: 	ests/test_series_temporales.py, 	ests/test_regresion.py, 	ests/test_consolidar_evaluacion.py.
 
 ### Criterio de cierre
 
 La evaluación utiliza datos posteriores a los de entrenamiento.
 Las métricas corresponden a predicciones calculadas y poblaciones explícitas.
+**Criterio satisfecho.** Todas las pruebas automatizadas pasan al 100%.
 
 ---
 

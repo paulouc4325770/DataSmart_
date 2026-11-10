@@ -1,0 +1,42 @@
+﻿{
+  "total_registros_evaluacion": 37,
+  "familias_tecnicas": [
+    "Reglas de Asociación",
+    "Clustering RFM",
+    "Grafos y Redes Complejas",
+    "Series Temporales",
+    "Regresión Predictiva"
+  ],
+  "modelos_evaluados": [
+    "apriori",
+    "fp-growth",
+    "kmeans_k2",
+    "kmeans_k3",
+    "kmeans_k4",
+    "kmeans_k5",
+    "kmeans_k6",
+    "red_vendedor_producto_bipartita",
+    "pagerank_ponderado",
+    "baseline_ultimo",
+    "suavizamiento_exponencial_simple",
+    "suavizamiento_exponencial_holt",
+    "baseline_mediana",
+    "ridge",
+    "random_forest"
+  ],
+  "metricas_consolidadas": [
+    "reglas_generadas",
+    "conjuntos_frecuentes",
+    "silhouette_score",
+    "davies_bouldin_index",
+    "inercia_wcss",
+    "total_nodos",
+    "total_aristas",
+    "max_pagerank",
+    "mae_brl",
+    "rmse_brl",
+    "mae_dias",
+    "rmse_dias",
+    "r2_score"
+  ]
+}

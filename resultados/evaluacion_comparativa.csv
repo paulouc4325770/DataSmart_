@@ -1,0 +1,38 @@
+﻿tecnica,modelo,metrica,valor,unidad,poblacion,particion,n_evaluacion,parametros_json,tiempo_s
+Reglas de Asociación,apriori,reglas_generadas,34.0,reglas,cestas_multicategoria,completa,34,"{""min_support"": 0.0001, ""min_confidence"": 0.05, ""min_lift"": 1.0}",0.0669
+Reglas de Asociación,apriori,conjuntos_frecuentes,87.0,itemsets,cestas_multicategoria,completa,87,"{""min_support"": 0.0001}",0.0669
+Reglas de Asociación,fp-growth,reglas_generadas,34.0,reglas,cestas_multicategoria,completa,34,"{""min_support"": 0.0001, ""min_confidence"": 0.05, ""min_lift"": 1.0}",0.1475
+Reglas de Asociación,fp-growth,conjuntos_frecuentes,87.0,itemsets,cestas_multicategoria,completa,87,"{""min_support"": 0.0001}",0.1475
+Clustering RFM,kmeans_k2,silhouette_score,0.711143,"coeficiente [-1, 1]",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 2, ""random_state"": 42}",
+Clustering RFM,kmeans_k2,davies_bouldin_index,0.47651,"indice [0, inf)",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 2, ""random_state"": 42}",
+Clustering RFM,kmeans_k2,inercia_wcss,190688.46,suma_cuadrados_wcss,compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 2, ""random_state"": 42}",
+Clustering RFM,kmeans_k3,silhouette_score,0.357089,"coeficiente [-1, 1]",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 3, ""random_state"": 42}",
+Clustering RFM,kmeans_k3,davies_bouldin_index,0.92189,"indice [0, inf)",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 3, ""random_state"": 42}",
+Clustering RFM,kmeans_k3,inercia_wcss,126765.12,suma_cuadrados_wcss,compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 3, ""random_state"": 42}",
+Clustering RFM,kmeans_k4,silhouette_score,0.364844,"coeficiente [-1, 1]",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 4, ""random_state"": 42}",
+Clustering RFM,kmeans_k4,davies_bouldin_index,0.782122,"indice [0, inf)",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 4, ""random_state"": 42}",
+Clustering RFM,kmeans_k4,inercia_wcss,86756.34,suma_cuadrados_wcss,compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 4, ""random_state"": 42}",
+Clustering RFM,kmeans_k5,silhouette_score,0.354396,"coeficiente [-1, 1]",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 5, ""random_state"": 42}",
+Clustering RFM,kmeans_k5,davies_bouldin_index,0.835387,"indice [0, inf)",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 5, ""random_state"": 42}",
+Clustering RFM,kmeans_k5,inercia_wcss,71132.44,suma_cuadrados_wcss,compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 5, ""random_state"": 42}",
+Clustering RFM,kmeans_k6,silhouette_score,0.347331,"coeficiente [-1, 1]",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 6, ""random_state"": 42}",
+Clustering RFM,kmeans_k6,davies_bouldin_index,0.869793,"indice [0, inf)",compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 6, ""random_state"": 42}",
+Clustering RFM,kmeans_k6,inercia_wcss,60173.38,suma_cuadrados_wcss,compradores_unicos_entregados,muestra_evaluacion,93358,"{""k"": 6, ""random_state"": 42}",
+Grafos y Redes Complejas,red_vendedor_producto_bipartita,total_nodos,35186.0,nodos,vendedores_y_productos_entregados,grafo_completo,35186,"{""tipo"": ""bipartito_no_dirigido"", ""peso"": ""cantidad_items""}",
+Grafos y Redes Complejas,red_vendedor_producto_bipartita,total_aristas,33659.0,aristas,vendedores_y_productos_entregados,grafo_completo,33659,"{""peso_total_items"": 110197}",
+Grafos y Redes Complejas,pagerank_ponderado,max_pagerank,0.005084,probabilidad_pagerank,vendedores_y_productos_entregados,grafo_completo,35186,"{""alpha"": 0.85, ""weight"": ""peso""}",
+Series Temporales,baseline_ultimo,mae_brl,77679.09,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""metodo"": ""naive_last_value"", ""ultimo_valor"": 132510.93}",0.0005
+Series Temporales,baseline_ultimo,rmse_brl,86643.0,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""metodo"": ""naive_last_value"", ""ultimo_valor"": 132510.93}",0.0005
+Series Temporales,suavizamiento_exponencial_simple,mae_brl,39858.13,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""alpha"": 0.6405}",0.008
+Series Temporales,suavizamiento_exponencial_simple,rmse_brl,49725.61,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""alpha"": 0.6405}",0.008
+Series Temporales,suavizamiento_exponencial_holt,mae_brl,43183.69,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""alpha"": 0.0, ""beta"": 0.0, ""damping_trend"": 0.9885}",0.0219
+Series Temporales,suavizamiento_exponencial_holt,rmse_brl,51611.93,BRL/semana,ventas_semanales_entregadas,test_cronologico,12,"{""alpha"": 0.0, ""beta"": 0.0, ""damping_trend"": 0.9885}",0.0219
+Regresión Predictiva,baseline_mediana,mae_dias,4.9532,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""metodo"": ""mediana_train"", ""mediana_dias"": 11.18}",0.0005
+Regresión Predictiva,baseline_mediana,rmse_dias,6.356,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""metodo"": ""mediana_train"", ""mediana_dias"": 11.18}",0.0005
+Regresión Predictiva,baseline_mediana,r2_score,-0.1922,"adimensional [-inf, 1]",pedidos_entregados_evaluables,test_cronologico,18603,"{""metodo"": ""mediana_train"", ""mediana_dias"": 11.18}",0.0005
+Regresión Predictiva,ridge,mae_dias,5.0913,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""alpha"": 10.0, ""solver"": ""auto""}",0.2738
+Regresión Predictiva,ridge,rmse_dias,6.5281,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""alpha"": 10.0, ""solver"": ""auto""}",0.2738
+Regresión Predictiva,ridge,r2_score,-0.2577,"adimensional [-inf, 1]",pedidos_entregados_evaluables,test_cronologico,18603,"{""alpha"": 10.0, ""solver"": ""auto""}",0.2738
+Regresión Predictiva,random_forest,mae_dias,4.1289,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""n_estimators"": 80, ""max_depth"": 14, ""min_samples_leaf"": 15}",9.197
+Regresión Predictiva,random_forest,rmse_dias,5.608,días,pedidos_entregados_evaluables,test_cronologico,18603,"{""n_estimators"": 80, ""max_depth"": 14, ""min_samples_leaf"": 15}",9.197
+Regresión Predictiva,random_forest,r2_score,0.0719,"adimensional [-inf, 1]",pedidos_entregados_evaluables,test_cronologico,18603,"{""n_estimators"": 80, ""max_depth"": 14, ""min_samples_leaf"": 15}",9.197

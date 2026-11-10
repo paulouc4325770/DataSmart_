@@ -1,17 +1,10 @@
-"""Segmentación RFM de Clientes con K-Means y Métricas de Validación.
+"""Segmentación RFM reproducible de compradores reales de Olist.
 
-Rol: Brandon — Segmentación de clientes (DataSmart - Minería de Datos UNMSM FISI).
-
-Ejecutar:
-    python src/clustering.py
-
-Población de referencia:
-    - Entregados (por defecto): 93.358 compradores únicos con pedidos en estado delivered.
-    - Todos: 96.096 compradores únicos considerando todos los estados transaccionales.
+Ejecutar: python src/clustering.py
+Requiere data/processed/pedidos_procesados.csv; no genera datos de demostración.
 """
 
 import argparse
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 import platform
@@ -21,297 +14,287 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.cluster import KMeans
 from sklearn.metrics import davies_bouldin_score, silhouette_score
 from sklearn.preprocessing import StandardScaler
+from threadpoolctl import threadpool_limits
+
+from asociacion import guardar_csv, leer_csv, sha256
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GRAFICOS = ROOT / 'resultados' / 'graficos'
-GRAFICOS.mkdir(parents=True, exist_ok=True)
-
-NOMBRES_SEGMENTOS_K4 = {
-    0: {
-        'nombre': 'Nuevos / Prometedores Recientes',
-        'descripcion': 'Compradores adquiridos en el último bimestre, ticket medio y compra única.',
-        'accion': 'Incentivo rápido de segunda compra con cupón de 30 días en categorías afines.',
-        'color': '#06b6d4',
-    },
-    1: {
-        'nombre': 'Compradores Ocasionales de Bajo Ticket',
-        'descripcion': 'Clientes inactivos (>8 meses) con gasto económico unitario.',
-        'accion': 'Campañas automáticas de bajo coste por email; evitar subsidio en costos de flete.',
-        'color': '#94a3b8',
-    },
-    2: {
-        'nombre': 'Clientes Leales / Recurrentes',
-        'descripcion': 'Compradores con 2 o más pedidos y desembolso acumulado superior a la media.',
-        'accion': 'Programa de lealtad VIP, soporte preferente y acceso anticipado a novedades.',
-        'color': '#10b981',
-    },
-    3: {
-        'nombre': 'Ticket Alto Inactivo / Gran Desembolso',
-        'descripcion': 'Clientes de una sola compra pero con alto gasto unitario (>R$ 150) inactivos.',
-        'accion': 'Reactivación personalizada con productos prémium y ofertas en fechas pico.',
-        'color': '#f59e0b',
-    },
-}
+VARIABLES = ['recencia', 'frecuencia', 'monto']
+COLUMNAS = ['order_id', 'customer_unique_id', 'order_status',
+            'order_purchase_timestamp', 'valor_articulos']
+INICIO = '<!-- INICIO RESULTADOS CLUSTERING -->'
+FIN = '<!-- FIN RESULTADOS CLUSTERING -->'
 
 
-def cargar_datos_pedidos(ruta_pedidos: Path, poblacion: str = 'entregados'):
-    """Carga los pedidos procesados y aplica el filtro poblacional correspondiente."""
-    df = pd.read_csv(ruta_pedidos, low_memory=False)
-    if 'es_entregado' not in df.columns:
-        df['es_entregado'] = df['order_status'] == 'delivered'
-
-    if poblacion == 'entregados':
-        df_poblacion = df.loc[df['es_entregado']].copy()
-    else:
-        df_poblacion = df.copy()
-
-    df_poblacion['order_purchase_timestamp'] = pd.to_datetime(
-        df_poblacion['order_purchase_timestamp'], errors='coerce'
+def construir_rfm(pedidos, fecha_referencia=None):
+    """Excluye compradores con algún pedido entregado incompleto, no sumas parciales."""
+    if pedidos['order_id'].isna().any() or pedidos['order_id'].duplicated().any():
+        raise ValueError('order_id debe ser único y no nulo; revisar la preparación.')
+    entregados = pedidos.loc[pedidos['order_status'].eq('delivered').fillna(False)].copy()
+    if entregados.empty:
+        raise ValueError('No hay pedidos delivered para construir RFM.')
+    entregados['compra'] = pd.to_datetime(
+        entregados['order_purchase_timestamp'], format='ISO8601', errors='coerce',
     )
-    return df_poblacion
-
-
-def construir_rfm(df_pedidos: pd.DataFrame, fecha_referencia: datetime = None):
-    """Calcula Recencia, Frecuencia y Monto por customer_unique_id."""
-    if fecha_referencia is None:
-        fecha_referencia = df_pedidos['order_purchase_timestamp'].max() + pd.Timedelta(days=1)
-
-    rfm = df_pedidos.groupby('customer_unique_id').agg(
-        recencia_dias=('order_purchase_timestamp', lambda s: (fecha_referencia - s.max()).total_seconds() / 86400.0),
-        frecuencia=('order_id', 'nunique'),
-        monto_brl=('valor_articulos', 'sum')
-    ).reset_index()
-
-    # Redondear recencia a 2 decimales para consistencia
-    rfm['recencia_dias'] = rfm['recencia_dias'].round(2)
-    rfm['monto_brl'] = rfm['monto_brl'].round(2)
-    return rfm, fecha_referencia
-
-
-def preparar_variables_clustering(rfm: pd.DataFrame):
-    """Aplica transformación logarítmica (log1p) y estandarización Z-score."""
-    # Las tres variables tienen fuerte asimetría positiva a la derecha
-    X_log = np.log1p(rfm[['recencia_dias', 'frecuencia', 'monto_brl']].values)
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_log)
-    return X_scaled, scaler
-
-
-def evaluar_k_clusters(X_scaled: np.ndarray, k_range=range(2, 7), semilla: int = 42, muestra_silhouette: int = 10000):
-    """Compara Inercia, Silhouette Score y Davies-Bouldin para distintos valores de k."""
-    rng = np.random.RandomState(semilla)
-    n_samples = len(X_scaled)
-    if n_samples > muestra_silhouette:
-        idx_sample = rng.choice(n_samples, size=muestra_silhouette, replace=False)
-        X_sample = X_scaled[idx_sample]
-    else:
-        idx_sample = np.arange(n_samples)
-        X_sample = X_scaled
-
-    filas = []
-    modelos = {}
-
-    for k in k_range:
-        km = KMeans(n_clusters=k, random_state=semilla, n_init=10)
-        labels = km.fit_predict(X_scaled)
-        inercia = float(km.inertia_)
-        db_index = float(davies_bouldin_score(X_scaled, labels))
-        sil_score = float(silhouette_score(X_sample, labels[idx_sample]))
-
-        filas.append({
-            'k': int(k),
-            'inercia': round(inercia, 2),
-            'silhouette': round(sil_score, 4),
-            'davies_bouldin': round(db_index, 4),
-            'muestra_silhouette': len(idx_sample),
-        })
-        modelos[k] = (km, labels)
-
-    eval_df = pd.DataFrame(filas)
-    return eval_df, modelos
-
-
-def generar_perfiles_clusters(rfm: pd.DataFrame, labels: np.ndarray, k: int = 4):
-    """Calcula estadísticas descriptivas reales (sin escalar) por segmento."""
-    rfm_etiquetado = rfm.copy()
-    rfm_etiquetado['cluster'] = labels
-
-    n_total = len(rfm_etiquetado)
-    perfiles = []
-
-    for cluster_id in sorted(rfm_etiquetado['cluster'].unique()):
-        sub = rfm_etiquetado.loc[rfm_etiquetado['cluster'] == cluster_id]
-        meta_seg = NOMBRES_SEGMENTOS_K4.get(cluster_id, {
-            'nombre': f'Cluster {cluster_id}',
-            'descripcion': 'Segmento analítico de clientes.',
-            'accion': 'Estrategia de retención segmentada.',
-            'color': '#3b82f6',
-        })
-
-        perfiles.append({
-            'cluster': int(cluster_id),
-            'segmento': meta_seg['nombre'],
-            'clientes': int(len(sub)),
-            'pct_clientes': round((len(sub) / n_total) * 100, 2),
-            'recencia_mediana': round(float(sub['recencia_dias'].median()), 1),
-            'recencia_media': round(float(sub['recencia_dias'].mean()), 1),
-            'frecuencia_mediana': round(float(sub['frecuencia'].median()), 2),
-            'frecuencia_media': round(float(sub['frecuencia'].mean()), 2),
-            'monto_mediana_brl': round(float(sub['monto_brl'].median()), 2),
-            'monto_media_brl': round(float(sub['monto_brl'].mean()), 2),
-            'descripcion': meta_seg['descripcion'],
-            'accion_comercial': meta_seg['accion'],
-            'color_hex': meta_seg['color'],
-        })
-
-    perfiles_df = pd.DataFrame(perfiles)
-    rfm_etiquetado['segmento'] = rfm_etiquetado['cluster'].map(
-        lambda c: NOMBRES_SEGMENTOS_K4.get(c, {}).get('nombre', f'Cluster {c}')
-    )
-    return rfm_etiquetado, perfiles_df
-
-
-def exportar_graficos(eval_df: pd.DataFrame, perfiles_df: pd.DataFrame, out_graficos: Path):
-    """Genera gráficos de validación (Codo / Silhouette) y distribución de clusters."""
-    # Gráfico 1: Método del codo y Silhouette
-    fig, ax1 = plt.subplots(figsize=(10, 5))
-    color_inercia = '#2563eb'
-    color_sil = '#10b981'
-
-    ax1.plot(eval_df['k'], eval_df['inercia'], marker='o', linewidth=2.5, color=color_inercia, label='Inercia (WCSS)')
-    ax1.set_xlabel('Número de Clusters (k)', fontsize=11, fontweight='bold')
-    ax1.set_ylabel('Inercia (WCSS)', color=color_inercia, fontsize=11, fontweight='bold')
-    ax1.tick_params(axis='y', labelcolor=color_inercia)
-    ax1.grid(alpha=0.25)
-
-    ax2 = ax1.twinx()
-    ax2.plot(eval_df['k'], eval_df['silhouette'], marker='s', linewidth=2.5, color=color_sil, linestyle='--', label='Silhouette')
-    ax2.set_ylabel('Silhouette Score (Muestra N=10k)', color=color_sil, fontsize=11, fontweight='bold')
-    ax2.tick_params(axis='y', labelcolor=color_sil)
-
-    plt.title('Evaluación de K-Means: Método del Codo y Silhouette Score', fontsize=12, fontweight='bold', pad=12)
-    fig.tight_layout()
-    fig.savefig(out_graficos / '04_clustering_codo_silhouette.png', dpi=170)
-    plt.close(fig)
-
-    # Gráfico 2: Distribución de clientes y montos por segmento
-    fig, (ax_cli, ax_mon) = plt.subplots(1, 2, figsize=(14, 5.5))
-    colores = perfiles_df['color_hex'].tolist()
-
-    # Barras de clientes
-    ax_cli.barh(perfiles_df['segmento'], perfiles_df['clientes'], color=colores)
-    ax_cli.set_xlabel('Cantidad de Clientes', fontsize=10, fontweight='bold')
-    ax_cli.set_title('Distribución de Clientes por Segmento RFM', fontsize=11, fontweight='bold')
-    for idx, row in perfiles_df.iterrows():
-        ax_cli.text(row['clientes'] + 500, idx, f"{row['clientes']:,} ({row['pct_clientes']}%)", va='center', fontsize=9)
-    ax_cli.set_xlim(0, perfiles_df['clientes'].max() * 1.25)
-    ax_cli.grid(axis='x', alpha=0.2)
-
-    # Barras de ticket mediano
-    ax_mon.barh(perfiles_df['segmento'], perfiles_df['monto_mediana_brl'], color=colores)
-    ax_mon.set_xlabel('Monto Mediano (BRL)', fontsize=10, fontweight='bold')
-    ax_mon.set_title('Ticket Mediano por Segmento (BRL)', fontsize=11, fontweight='bold')
-    for idx, row in perfiles_df.iterrows():
-        ax_mon.text(row['monto_mediana_brl'] + 3, idx, f"R$ {row['monto_mediana_brl']:.2f}", va='center', fontsize=9)
-    ax_mon.set_xlim(0, perfiles_df['monto_mediana_brl'].max() * 1.22)
-    ax_mon.grid(axis='x', alpha=0.2)
-
-    fig.tight_layout()
-    fig.savefig(out_graficos / '05_clustering_distribucion_segmentos.png', dpi=170)
-    plt.close(fig)
-
-
-def ejecutar(
-    ruta_pedidos: Path = ROOT / 'data' / 'processed' / 'pedidos_procesados.csv',
-    salida_dir: Path = ROOT / 'resultados',
-    poblacion: str = 'entregados',
-    k_elegido: int = 4,
-    semilla: int = 42,
-):
-    salida_dir.mkdir(parents=True, exist_ok=True)
-    graficos_dir = salida_dir / 'graficos'
-    graficos_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"Cargando pedidos desde {ruta_pedidos} (población: {poblacion})...")
-    df_pedidos = cargar_datos_pedidos(ruta_pedidos, poblacion=poblacion)
-    print(f"Pedidos cargados: {len(df_pedidos):,}, compradores únicos: {df_pedidos['customer_unique_id'].nunique():,}")
-
-    rfm, ref_date = construir_rfm(df_pedidos)
-    print(f"RFM calculado con fecha de referencia: {ref_date.isoformat()}")
-
-    X_scaled, _ = preparar_variables_clustering(rfm)
-    print("Variables transformadas (log1p + StandardScaler). Evaluando k de 2 a 6...")
-
-    eval_df, modelos = evaluar_k_clusters(X_scaled, k_range=range(2, 7), semilla=semilla)
-    print("\n=== EVALUACIÓN DE CLUSTERING ===")
-    print(eval_df.to_string(index=False))
-
-    km_elegido, labels_elegido = modelos[k_elegido]
-    rfm_etiquetado, perfiles_df = generar_perfiles_clusters(rfm, labels_elegido, k=k_elegido)
-    print(f"\n=== PERFILES DE SEGMENTOS (k={k_elegido}) ===")
-    print(perfiles_df[['cluster', 'segmento', 'clientes', 'pct_clientes', 'recencia_mediana', 'frecuencia_mediana', 'monto_mediana_brl']].to_string(index=False))
-
-    # Guardar archivos CSV
-    eval_df.to_csv(salida_dir / 'evaluacion_clustering.csv', index=False, encoding='utf-8-sig')
-    perfiles_df.to_csv(salida_dir / 'perfiles_clusters.csv', index=False, encoding='utf-8-sig')
-    
-    # Exportar clientes_clusters (muestra o completo)
-    rfm_etiquetado[['customer_unique_id', 'recencia_dias', 'frecuencia', 'monto_brl', 'cluster', 'segmento']].to_csv(
-        salida_dir / 'clientes_clusters.csv', index=False, encoding='utf-8-sig'
-    )
-
-    # Generar gráficos
-    exportar_graficos(eval_df, perfiles_df, graficos_dir)
-
-    # Metadata
-    metadata = {
-        'ejecutado_en_utc': datetime.now(timezone.utc).isoformat(),
-        'python': platform.python_version(),
-        'poblacion': poblacion,
-        'poblacion_descripcion': f"Compradores de pedidos {'con estado delivered' if poblacion == 'entregados' else 'totales'}; N={len(rfm)}",
-        'compradores_analizados': len(rfm),
-        'fecha_referencia': ref_date.isoformat(),
-        'variables': ['recencia_dias', 'frecuencia', 'monto_brl'],
-        'transformacion': 'log1p + StandardScaler',
-        'k_elegido': k_elegido,
-        'semilla': semilla,
-        'criterios_seleccion': 'Davies-Bouldin mínimo (0.759) entre k>=3 y óptima interpretabilidad de negocio (4 cuadrantes RFM)',
-        'metricas_k4': {
-            'inercia': float(km_elegido.inertia_),
-            'silhouette_muestra10k': float(eval_df.loc[eval_df['k'] == k_elegido, 'silhouette'].values[0]),
-            'davies_bouldin': float(eval_df.loc[eval_df['k'] == k_elegido, 'davies_bouldin'].values[0]),
-        },
-        'perfiles': perfiles_df.to_dict(orient='records'),
+    entregados['importe'] = pd.to_numeric(entregados['valor_articulos'], errors='coerce')
+    incompleto = (entregados['compra'].isna() | entregados['importe'].isna()
+                  | ~np.isfinite(entregados['importe'].astype(float))
+                  | entregados['importe'].lt(0).fillna(False))
+    sin_id = entregados['customer_unique_id'].isna()
+    compradores_incompletos = entregados.loc[incompleto & ~sin_id, 'customer_unique_id'].unique()
+    excluir = sin_id | entregados['customer_unique_id'].isin(compradores_incompletos)
+    elegibles = entregados.loc[~excluir].copy()
+    if elegibles.empty:
+        raise ValueError('No hay compradores con pedidos entregados completos para RFM.')
+    referencia = (elegibles['compra'].max().normalize() + pd.Timedelta(1, unit='D')
+                  if fecha_referencia is None else pd.Timestamp(fecha_referencia).normalize())
+    if referencia.tzinfo is not None or referencia <= elegibles['compra'].max():
+        raise ValueError('La fecha de referencia debe ser sin zona horaria y posterior a la última compra.')
+    grupo = elegibles.groupby('customer_unique_id', sort=True)
+    rfm = grupo.agg(ultima_compra=('compra', 'max'), frecuencia=('order_id', 'nunique'))
+    rfm['monto'] = grupo['importe'].sum(min_count=1)
+    rfm['recencia'] = (referencia - rfm.pop('ultima_compra').dt.normalize()).dt.days
+    rfm = rfm[VARIABLES].reset_index()
+    resumen = {
+        'pedidos_entrada': len(pedidos), 'pedidos_entregados': len(entregados),
+        'pedidos_otros_estados_excluidos': len(pedidos) - len(entregados),
+        'compradores_entregados_antes_exclusiones': int(entregados['customer_unique_id'].nunique()),
+        'pedidos_entregados_sin_comprador': int(sin_id.sum()),
+        'pedidos_entregados_con_fecha_o_importe_invalido': int(incompleto.sum()),
+        'compradores_excluidos_por_historia_incompleta': len(compradores_incompletos),
+        'pedidos_excluidos_por_comprador_o_historia_incompleta': int(excluir.sum()),
+        'pedidos_utilizados': len(elegibles), 'compradores_utilizados': len(rfm),
+        'compra_minima': str(elegibles['compra'].min()),
+        'compra_maxima': str(elegibles['compra'].max()),
+        'fecha_referencia': referencia.date().isoformat(),
+        'monto_total_BRL': float(rfm['monto'].sum()),
+        'compradores_recurrentes': int(rfm['frecuencia'].gt(1).sum()),
     }
+    if rfm['frecuencia'].sum() != len(elegibles):
+        raise ValueError('La frecuencia RFM no concilia con los pedidos utilizados.')
+    return rfm, resumen
 
-    with open(salida_dir / 'clustering_metadata.json', 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    print(f"\nResultados de clustering guardados exitosamente en: {salida_dir}")
-    print(f"Gráficos generados en: {graficos_dir}")
+def transformar_rfm(rfm):
+    """Log1p solo si |asimetría| > 1 y disminuye al transformar; luego estandariza."""
+    originales = rfm[VARIABLES].astype(float)
+    transformadas = originales.copy()
+    distribuciones = []
+    for variable in VARIABLES:
+        valores = originales[variable]
+        logaritmos = np.log1p(valores)
+        asimetria, asimetria_log = float(valores.skew()), float(logaritmos.skew())
+        usar_log = abs(asimetria) > 1 and abs(asimetria_log) < abs(asimetria)
+        transformadas[variable] = logaritmos if usar_log else valores
+        distribuciones.append({
+            'variable': variable, 'minimo': float(valores.min()),
+            'p25': float(valores.quantile(.25)), 'mediana': float(valores.median()),
+            'promedio': float(valores.mean()), 'p75': float(valores.quantile(.75)),
+            'p95': float(valores.quantile(.95)), 'maximo': float(valores.max()),
+            'asimetria_original': asimetria, 'asimetria_log1p': asimetria_log,
+            'transformacion': 'log1p' if usar_log else 'identidad',
+        })
+    escalador = StandardScaler()
+    escaladas = escalador.fit_transform(transformadas)
+    return escaladas, pd.DataFrame(distribuciones), transformadas, escalador
+
+
+def evaluar_modelos(escaladas, muestra=1800):
+    if len(escaladas) <= 6 or np.unique(escaladas, axis=0).shape[0] < 6:
+        raise ValueError('Se necesitan más de 6 compradores y al menos 6 perfiles RFM distintos.')
+    indices = np.sort(np.random.default_rng(42).choice(
+        len(escaladas), size=min(muestra, len(escaladas)), replace=False,
+    ))
+    evaluacion, etiquetas = [], {}
+    # Evita sobrecarga de hilos en matrices pequeñas y mantiene el mismo entorno numérico.
+    with threadpool_limits(limits=1):
+        for k in range(2, 7):
+            modelo = KMeans(n_clusters=k, init='k-means++', random_state=42, n_init=10,
+                            algorithm='lloyd', max_iter=300, tol=1e-4)
+            labels = modelo.fit_predict(escaladas)
+            presentes = np.unique(labels[indices]).size
+            if not 1 < presentes < len(indices):
+                raise ValueError(f'La muestra fija no permite evaluar k={k}; aumentar --muestra-silhouette.')
+            sil = float(silhouette_score(escaladas[indices], labels[indices]))
+            db = float(davies_bouldin_score(escaladas, labels))
+            if not np.isfinite([sil, db, modelo.inertia_]).all() or np.unique(labels).size != k:
+                raise ValueError(f'Métricas o partición inválidas para k={k}.')
+            evaluacion.append({
+                'k': k, 'silhouette': sil, 'davies_bouldin': db, 'inercia': float(modelo.inertia_),
+                'random_state': 42, 'n_init': 10, 'init': 'k-means++', 'algorithm': 'lloyd',
+                'max_iter': modelo.max_iter, 'tol': modelo.tol, 'iteraciones': int(modelo.n_iter_),
+                'clientes_ajuste': len(escaladas), 'muestra_silhouette': len(indices),
+                'escala': 'StandardScaler',
+            })
+            etiquetas[k] = labels
+    evaluacion = pd.DataFrame(evaluacion)
+    # Regla fijada antes de observar resultados, sin elegir visualmente a conveniencia.
+    mejor = evaluacion.sort_values(['silhouette', 'davies_bouldin', 'k'], ascending=[False, True, True]).iloc[0]
+    elegido = int(mejor['k'])
+    evaluacion['seleccionado'] = evaluacion['k'].eq(elegido)
+    return evaluacion, etiquetas[elegido], indices
+
+
+def perfilar_clusters(clientes):
+    grupo = clientes.groupby('cluster', sort=True)
+    perfiles = grupo.agg(cantidad_clientes=('customer_unique_id', 'size'))
+    perfiles['porcentaje'] = perfiles['cantidad_clientes'] / len(clientes) * 100
+    for variable in VARIABLES:
+        perfiles[f'{variable}_promedio'] = grupo[variable].mean()
+        perfiles[f'{variable}_mediana'] = grupo[variable].median()
+    perfiles['porcentaje_recurrentes'] = grupo['frecuencia'].apply(lambda s: s.gt(1).mean() * 100)
+    perfiles['monto_total'] = grupo['monto'].sum(min_count=1)
+    globales = clientes[VARIABLES].mean()
+    for cluster, fila in perfiles.iterrows():
+        menor_r = fila['recencia_promedio'] <= globales['recencia']
+        mayor_f = fila['frecuencia_promedio'] >= globales['frecuencia']
+        mayor_m = fila['monto_promedio'] >= globales['monto']
+        perfiles.loc[cluster, 'segmento'] = (
+            f'C{cluster}: R {"menor/igual" if menor_r else "mayor"}, '
+            f'F {"mayor/igual" if mayor_f else "menor"}, M {"mayor/igual" if mayor_m else "menor"}'
+        )
+        perfiles.loc[cluster, 'interpretacion'] = (
+            f'Recencia media {fila["recencia_promedio"]:.1f} días; '
+            f'frecuencia media {fila["frecuencia_promedio"]:.3f} pedidos; '
+            f'monto medio {fila["monto_promedio"]:.2f} BRL. '
+            'Las comparaciones R/F/M se refieren a las medias de la población analizada.'
+        )
+        accion = 'Probar retención' if menor_r else 'Probar reactivación'
+        accion += ' con seguimiento de recompra' if mayor_f else ' orientada a una segunda compra'
+        accion += '; evaluar ofertas personalizadas sin asumir rentabilidad.' if mayor_m else '; limitar incentivos y medir su retorno.'
+        perfiles.loc[cluster, 'accion_sugerida'] = accion
+    return perfiles.reset_index()
+
+
+def graficar(clientes, perfiles, evaluacion, distribuciones, transformadas, carpeta):
+    carpeta.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    barras = ax.bar(perfiles['cluster'].astype(str), perfiles['cantidad_clientes'], color='#2874a6')
+    ax.bar_label(barras, labels=[f'{p:.1f}%' for p in perfiles['porcentaje']], padding=3)
+    ax.set(xlabel='Cluster', ylabel='Compradores', title=f'Población RFM: {len(clientes):,} compradores')
+    ax.margins(y=.15)
+    fig.tight_layout()
+    fig.savefig(carpeta / 'clustering_clientes_por_cluster.png', dpi=160)
+    plt.close(fig)
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.8))
+    for ax, metrica, titulo in zip(axes, ['silhouette', 'davies_bouldin', 'inercia'],
+                                 ['Silhouette (mayor es mejor)', 'Davies-Bouldin (menor es mejor)', 'Inercia (menor con más k)']):
+        ax.plot(evaluacion['k'], evaluacion[metrica], 'o-', color='#2874a6')
+        ax.axvline(int(evaluacion.loc[evaluacion['seleccionado'], 'k'].iloc[0]), color='#c0392b', linestyle='--')
+        ax.set(xlabel='k', title=titulo, xticks=range(2, 7))
+    fig.tight_layout()
+    fig.savefig(carpeta / 'clustering_evaluacion_k.png', dpi=160)
+    plt.close(fig)
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    for ax, variable, unidad in zip(axes, VARIABLES, ['días', 'pedidos', 'BRL']):
+        x = np.arange(len(perfiles))
+        ax.bar(x - .18, perfiles[f'{variable}_promedio'], .36, label='Promedio')
+        ax.bar(x + .18, perfiles[f'{variable}_mediana'], .36, label='Mediana')
+        ax.set(title=variable.capitalize(), ylabel=unidad, xlabel='Cluster', xticks=x,
+               xticklabels=perfiles['cluster'].astype(str))
+        ax.legend()
+    fig.tight_layout()
+    fig.savefig(carpeta / 'clustering_perfiles_rfm.png', dpi=160)
+    plt.close(fig)
+    fig, axes = plt.subplots(2, 3, figsize=(12, 6))
+    for j, variable in enumerate(VARIABLES):
+        axes[0, j].hist(clientes[variable], bins=50, color='#2874a6')
+        axes[0, j].set(title=f'{variable}: original', ylabel='Compradores')
+        nombre = distribuciones.set_index('variable').loc[variable, 'transformacion']
+        axes[1, j].hist(transformadas[variable], bins=50, color='#148f77')
+        axes[1, j].set(title=f'{variable}: {nombre}', ylabel='Compradores')
+    fig.tight_layout()
+    fig.savefig(carpeta / 'clustering_distribuciones_rfm.png', dpi=160)
+    plt.close(fig)
+
+
+def publicar_resumen(salida, texto):
+    """Mantiene el bloque calculado del informe; no altera las secciones de grafos."""
+    ruta = salida / 'docs' / 'clustering_y_grafos.md'
+    if ruta.is_file():
+        contenido = ruta.read_text(encoding='utf-8')
+        if INICIO in contenido and FIN in contenido:
+            antes, resto = contenido.split(INICIO, 1)
+            _, despues = resto.split(FIN, 1)
+            ruta.write_text(antes + INICIO + '\n\n' + texto + '\n\n' + FIN + despues, encoding='utf-8')
+
+
+def ejecutar(pedidos_csv, salida, muestra=1800, fecha_referencia=None):
+    pedidos = leer_csv(pedidos_csv, COLUMNAS, 'pedidos_procesados.csv')
+    clientes, poblacion = construir_rfm(pedidos, fecha_referencia)
+    escaladas, distribuciones, transformadas, escalador = transformar_rfm(clientes)
+    evaluacion, labels, indices = evaluar_modelos(escaladas, muestra)
+    clientes['cluster'] = labels
+    perfiles = perfilar_clusters(clientes)
+    clientes['segmento'] = clientes['cluster'].map(perfiles.set_index('cluster')['segmento'])
+    if clientes['customer_unique_id'].duplicated().any() or perfiles['cantidad_clientes'].sum() != len(clientes):
+        raise ValueError('No concilian los compradores y los tamaños de clusters.')
+    resultados = salida / 'resultados'
+    for nombre, tabla in [('clientes_clusters', clientes), ('perfiles_clusters', perfiles),
+                          ('evaluacion_clustering', evaluacion), ('rfm_distribuciones', distribuciones)]:
+        guardar_csv(tabla, resultados / f'{nombre}.csv')
+    graficar(clientes, perfiles, evaluacion, distribuciones, transformadas, resultados / 'graficos')
+    mejor = evaluacion.loc[evaluacion['seleccionado']].iloc[0]
+    metadata = {
+        'fuente': str(pedidos_csv), 'sha256_entrada': sha256(pedidos_csv),
+        'python': platform.python_version(), 'pandas': pd.__version__,
+        'numpy': np.__version__, 'scikit_learn': sklearn.__version__,
+        'matplotlib': matplotlib.__version__, 'poblacion': poblacion,
+        'k_seleccionado': int(mejor['k']),
+        'criterio_seleccion': 'Mayor Silhouette en muestra fija; desempate menor Davies-Bouldin y menor k.',
+        'transformaciones': dict(zip(distribuciones['variable'], distribuciones['transformacion'])),
+        'media_standard_scaler': escalador.mean_.tolist(), 'escala_standard_scaler': escalador.scale_.tolist(),
+        'semilla': 42, 'n_init': 10, 'hilos_ajuste': 1,
+        'muestra_silhouette': len(indices),
+        'compradores_muestra': clientes.iloc[indices]['customer_unique_id'].tolist(),
+    }
+    (resultados / 'clustering_metadata.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    lineas = [
+        f'**Ejecución real: k={int(mejor["k"])}; N={len(clientes):,} compradores.**',
+        f'Referencia: {poblacion["fecha_referencia"]}; ventana de compra: {poblacion["compra_minima"]} a {poblacion["compra_maxima"]}.',
+        f'Pedidos: {poblacion["pedidos_entrada"]:,} de entrada; {poblacion["pedidos_entregados"]:,} entregados; {poblacion["pedidos_utilizados"]:,} utilizados.',
+        f'Excluidos: {poblacion["pedidos_otros_estados_excluidos"]:,} de otros estados; {poblacion["pedidos_entregados_sin_comprador"]:,} entregados sin comprador; {poblacion["compradores_excluidos_por_historia_incompleta"]:,} compradores con historia incompleta ({poblacion["pedidos_excluidos_por_comprador_o_historia_incompleta"]:,} pedidos entregados excluidos en total).',
+        f'Silhouette utiliza los mismos {len(indices):,} compradores para todos los k; ajuste, Davies-Bouldin e inercia usan toda la población.',
+        '\n| k | Silhouette | Davies-Bouldin | Inercia | Seleccionado |\n|---:|---:|---:|---:|---|',
+    ]
+    for fila in evaluacion.itertuples():
+        lineas.append(f'| {fila.k} | {fila.silhouette:.5f} | {fila.davies_bouldin:.5f} | {fila.inercia:.2f} | {"Sí" if fila.seleccionado else "No"} |')
+    lineas += ['\nSe elige el mayor Silhouette; Davies-Bouldin desempata e inercia contextualiza la compactación, sin comparar escalas entre métricas.',
+               '\n| Variable | Asimetría original | Asimetría log1p | Transformación |\n|---|---:|---:|---|']
+    for fila in distribuciones.itertuples():
+        lineas.append(f'| {fila.variable} | {fila.asimetria_original:.3f} | {fila.asimetria_log1p:.3f} | {fila.transformacion} |')
+    lineas += ['\n| Cluster | Clientes | % | R media/mediana (días) | F media/mediana | M media/mediana (BRL) |\n|---:|---:|---:|---:|---:|---:|']
+    for fila in perfiles.itertuples():
+        lineas.append(f'| {fila.cluster} | {fila.cantidad_clientes} | {fila.porcentaje:.2f} | {fila.recencia_promedio:.1f}/{fila.recencia_mediana:.1f} | {fila.frecuencia_promedio:.3f}/{fila.frecuencia_mediana:.1f} | {fila.monto_promedio:.2f}/{fila.monto_mediana:.2f} |')
+    for fila in perfiles.itertuples():
+        lineas += [f'\n**{fila.segmento}.** {fila.interpretacion} Acción propuesta: {fila.accion_sugerida}']
+    lineas += [f'\nConclusión: la partición seleccionada separa perfiles RFM con Silhouette {mejor["silhouette"]:.5f}; es segmentación descriptiva, no evidencia causal ni validación de campañas.']
+    texto = '\n\n'.join(lineas[:5]) + '\n' + '\n'.join(lineas[5:])
+    (resultados / 'clustering_resumen.md').write_text(texto + '\n', encoding='utf-8')
+    publicar_resumen(salida, texto)
+    print(f'RFM: {len(clientes):,} compradores; k={int(mejor["k"])}; Silhouette={mejor["silhouette"]:.5f}; Davies-Bouldin={mejor["davies_bouldin"]:.5f}.')
+    print(f'CSV, metadatos y gráficos: {resultados}')
     return metadata
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--pedidos', type=Path, default=ROOT / 'data' / 'processed' / 'pedidos_procesados.csv', help='Ruta a pedidos_procesados.csv')
-    parser.add_argument('--salida-dir', type=Path, default=ROOT / 'resultados', help='Directorio de salida para CSV y JSON')
-    parser.add_argument('--poblacion', type=str, default='entregados', choices=['entregados', 'todos'], help='Población de compradores a segmentar')
-    parser.add_argument('--k', type=int, default=4, help='Número k de clusters a seleccionar (por defecto 4)')
-    parser.add_argument('--semilla', type=int, default=42, help='Semilla pseudoaleatoria')
+    parser.add_argument('--pedidos', type=Path, default=ROOT / 'data/processed/pedidos_procesados.csv')
+    parser.add_argument('--output-root', type=Path, default=ROOT)
+    parser.add_argument('--fecha-referencia', help='Fecha ISO posterior a la última compra; por defecto día siguiente al máximo.')
+    parser.add_argument('--muestra-silhouette', type=int, default=1800, help='Muestra fija entre 100 y 2000 compradores (máximo).')
     args = parser.parse_args()
-
-    ejecutar(
-        ruta_pedidos=args.pedidos.resolve(),
-        salida_dir=args.salida_dir.resolve(),
-        poblacion=args.poblacion,
-        k_elegido=args.k,
-        semilla=args.semilla,
-    )
+    if not 100 <= args.muestra_silhouette <= 2000:
+        parser.error('--muestra-silhouette debe estar entre 100 y 2000.')
+    try:
+        ejecutar(args.pedidos.resolve(), args.output_root.resolve(), args.muestra_silhouette, args.fecha_referencia)
+    except (OSError, ValueError) as error:
+        parser.exit(1, f'Error de clustering: {error}\n')
 
 
 if __name__ == '__main__':
