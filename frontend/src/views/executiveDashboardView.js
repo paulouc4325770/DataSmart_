@@ -139,7 +139,7 @@ export function renderExecutiveDashboardView(store, state) {
               <div class="bar-row">
                 <div class="bar-row-label">
                   <span>
-                    <strong style="color:${st.color}">●</strong>
+                    <strong aria-hidden="true" style="color:${st.color}">${st.marker}</strong>
                     ${st.label} <span class="mono" style="color:var(--text-muted)">(${st.status})</span>
                   </span>
                   <span class="mono">
@@ -215,8 +215,8 @@ export function renderExecutiveDashboardView(store, state) {
                     class="bar-fill"
                     style="width:${widthPct.toFixed(1)}%; background:${
                       isTop5
-                        ? 'linear-gradient(90deg, #3b82f6, #10b981)'
-                        : 'linear-gradient(90deg, #6366f1, #3b82f6)'
+                        ? 'var(--chart-primary)'
+                        : 'var(--chart-secondary)'
                     };"
                   ></div>
                 </div>
@@ -307,7 +307,7 @@ export function renderExecutiveDashboardView(store, state) {
           <img
             src="/resultados/graficos/01_pedidos_por_estado.png"
             alt="Pedidos según su estado"
-            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:#fff;"
+            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--off-white);"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
           />
           <div style="display:none; font-size:0.76rem; color:var(--text-muted); padding:1rem; text-align:center;">
@@ -320,7 +320,7 @@ export function renderExecutiveDashboardView(store, state) {
           <img
             src="/resultados/graficos/02_ventas_mensuales.png"
             alt="Ventas mensuales de artículos"
-            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:#fff;"
+            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--off-white);"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
           />
           <div style="display:none; font-size:0.76rem; color:var(--text-muted); padding:1rem; text-align:center;">
@@ -333,7 +333,7 @@ export function renderExecutiveDashboardView(store, state) {
           <img
             src="/resultados/graficos/03_top_categorias.png"
             alt="Las 10 categorías con mayores ventas"
-            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:#fff;"
+            style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--off-white);"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
           />
           <div style="display:none; font-size:0.76rem; color:var(--text-muted); padding:1rem; text-align:center;">

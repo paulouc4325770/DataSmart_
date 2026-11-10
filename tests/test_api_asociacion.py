@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 import threading
@@ -126,6 +127,7 @@ class PruebaHttp(unittest.TestCase):
                 with urllib.request.urlopen(url, timeout=10) as respuesta:
                     self.assertEqual(respuesta.status, 200)
                     self.assertIn('application/json', respuesta.headers['Content-Type'])
+                    self.assertIn('no-store', respuesta.headers['Cache-Control'])
                     datos = json.loads(respuesta.read().decode('utf-8'))
             finally:
                 httpd.shutdown()
@@ -133,6 +135,37 @@ class PruebaHttp(unittest.TestCase):
                 servidor.RESULTADOS_DIR = original
         self.assertEqual(datos['status'], 'ok')
         self.assertEqual(len(datos['poblaciones']['principal']['reglas']), 2)
+
+    def test_recarga_css_actualizado_aunque_conserve_fecha_y_tamano(self):
+        with TemporaryDirectory() as tmp:
+            css = Path(tmp) / 'styles.css'
+            css.write_text('body { color: #35627A; }', encoding='utf-8')
+            fecha = css.stat()
+            original = servidor.FRONTEND_DIR
+            servidor.FRONTEND_DIR = Path(tmp)
+            httpd = ThreadingHTTPServer(('127.0.0.1', 0), servidor.DataSmartHandler)
+            hilo = threading.Thread(target=httpd.serve_forever, daemon=True)
+            hilo.start()
+            try:
+                url = f'http://127.0.0.1:{httpd.server_address[1]}/styles.css'
+                with urllib.request.urlopen(url, timeout=10) as respuesta:
+                    ultima_modificacion = respuesta.headers['Last-Modified']
+                    self.assertIn(b'#35627A', respuesta.read())
+
+                # Una edición rápida puede conservar el timestamp HTTP y el tamaño.
+                css.write_text('body { color: #B46258; }', encoding='utf-8')
+                os.utime(css, ns=(fecha.st_atime_ns, fecha.st_mtime_ns))
+                peticion = urllib.request.Request(url, headers={
+                    'If-Modified-Since': ultima_modificacion,
+                })
+                with urllib.request.urlopen(peticion, timeout=10) as respuesta:
+                    self.assertEqual(respuesta.status, 200)
+                    self.assertIn('no-store', respuesta.headers['Cache-Control'])
+                    self.assertIn(b'#B46258', respuesta.read())
+            finally:
+                httpd.shutdown()
+                httpd.server_close()
+                servidor.FRONTEND_DIR = original
 
 
 if __name__ == '__main__':

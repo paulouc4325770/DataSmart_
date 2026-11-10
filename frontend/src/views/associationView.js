@@ -286,7 +286,7 @@ export function renderAssociationTab(association, state) {
                       const significativa = r.lift > 1 && r.pValor !== null && r.pValor < bonferroni.umbral;
                       const elegida = seleccionada && seleccionada.id === r.id;
                       return `
-              <tr data-action="select-rule" data-rule-id="${esc(r.id)}" style="cursor:pointer; ${elegida ? 'background:var(--bg-secondary);' : ''}">
+              <tr data-action="select-rule" data-rule-id="${esc(r.id)}" style="cursor:pointer; ${elegida ? 'background:var(--accent-primary-soft); box-shadow:inset 3px 0 0 var(--accent-primary);' : ''}">
                 <td class="mono"><strong>${esc(r.id)}</strong></td>
                 <td><strong>${esc(categorySetLabel(r.antecedente))}</strong><div class="mono" style="font-size:0.68rem; color:var(--text-muted);">${esc(r.antecedente)}</div></td>
                 <td style="color:var(--accent-emerald);"><strong>→ ${esc(categorySetLabel(r.consecuente))}</strong><div class="mono" style="font-size:0.68rem; color:var(--text-muted);">${esc(r.consecuente)}</div></td>
@@ -317,4 +317,3 @@ export function renderAssociationTab(association, state) {
       </div>
     </div>`;
 }
-

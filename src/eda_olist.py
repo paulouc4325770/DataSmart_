@@ -7,6 +7,30 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
+# Paleta del frontend: fondo claro con acentos petróleo, rosa, terracota y lavanda.
+PALETA = {
+    'petroleo': '#35627A',
+    'rosa': '#E5AEA9',
+    'terracota': '#B46258',
+    'lavanda': '#A6A9D0',
+    'fondo': '#F5F5F5',
+    'salvia': '#8E9A98',
+    'texto': '#24343C',
+    'secundario': '#4B5E66',
+}
+plt.rcParams.update({
+    'figure.facecolor': PALETA['fondo'],
+    'axes.facecolor': PALETA['fondo'],
+    'axes.edgecolor': PALETA['salvia'],
+    'axes.labelcolor': PALETA['texto'],
+    'text.color': PALETA['texto'],
+    'xtick.color': PALETA['secundario'],
+    'ytick.color': PALETA['secundario'],
+    'grid.color': PALETA['salvia'],
+    'savefig.facecolor': PALETA['fondo'],
+    'axes.prop_cycle': matplotlib.cycler(color=[PALETA['petroleo'], PALETA['terracota'], PALETA['lavanda']]),
+})
+
 # Rutas del proyecto (independientes del directorio de ejecucion).
 ROOT = Path(__file__).resolve().parents[1]
 ZIP = ROOT / 'data' / 'raw' / 'archive.zip'
@@ -133,7 +157,15 @@ indicadores.to_csv(OUT / 'indicadores_kpi.csv', index=False, encoding='utf-8-sig
 estados = pedidos['order_status'].value_counts()
 etiquetas_estado = [ESTADOS_ES.get(estado, estado) for estado in estados.index]
 fig, ax = plt.subplots(figsize=(12, 5.5))
-barras = ax.bar(etiquetas_estado, estados.to_numpy(), color='#2563eb')
+colores_estado = {
+    'delivered': PALETA['petroleo'],
+    'canceled': PALETA['terracota'],
+    'unavailable': PALETA['rosa'],
+    'shipped': PALETA['lavanda'],
+}
+barras = ax.bar(etiquetas_estado, estados.to_numpy(),
+                color=[colores_estado.get(estado, PALETA['salvia']) for estado in estados.index],
+                edgecolor=PALETA['secundario'], linewidth=0.6)
 ax.set(title='Pedidos según su estado', xlabel='Estado del pedido', ylabel='Cantidad de pedidos')
 ax.yaxis.set_major_formatter(FuncFormatter(entero_es))
 ax.bar_label(barras, labels=[entero_es(v) for v in estados.to_numpy()], padding=3, fontsize=8)
@@ -155,7 +187,10 @@ serie.rename('ventas_articulos_BRL').to_csv(
     OUT / 'ventas_mensuales.csv', encoding='utf-8-sig'
 )
 fig, ax = plt.subplots(figsize=(12, 5.5))
-ax.plot(serie.index, serie.values, marker='o', color='#2563eb', linewidth=2)
+ax.plot(serie.index, serie.values, marker='o', color=PALETA['petroleo'], linewidth=2)
+ax.fill_between(serie.index, serie.values, color=PALETA['lavanda'], alpha=0.2)
+mes_pico = serie.idxmax()
+ax.scatter([mes_pico], [serie.loc[mes_pico]], color=PALETA['terracota'], s=65, zorder=3)
 ax.set(title='Ventas mensuales de artículos (pedidos entregados)',
        xlabel='Mes de compra', ylabel='Ventas (BRL)')
 ax.yaxis.set_major_formatter(FuncFormatter(lambda valor, _: moneda_br(valor)))
@@ -182,7 +217,10 @@ etiquetas_categoria = [
     for categoria in ventas_categoria.index
 ]
 fig, ax = plt.subplots(figsize=(12, 6))
-barras = ax.barh(etiquetas_categoria, ventas_categoria.values, color='#2563eb')
+barras = ax.barh(etiquetas_categoria, ventas_categoria.values,
+                 color=[PALETA['lavanda']] * max(len(ventas_categoria) - 5, 0)
+                 + [PALETA['petroleo']] * min(len(ventas_categoria), 5),
+                 edgecolor=PALETA['petroleo'], linewidth=0.6)
 ax.set(title='Las 10 categorías con mayores ventas de artículos',
        xlabel='Ventas (BRL)', ylabel='Categoría de producto')
 ax.xaxis.set_major_formatter(FuncFormatter(lambda valor, _: moneda_br(valor)))

@@ -15,7 +15,7 @@ frontend/
 └── src/
     ├── main.js                       # Controlador reactivo SPA, estado global y eventos
     ├── styles/
-    │   └── main.css                  # Design System Enterprise Analytics (Modo Oscuro / Claro)
+    │   └── main.css                  # Design System Enterprise Analytics (tema claro)
     ├── data/
     │   └── olistData.js              # Store sincronizado con resultados/*.csv e Informe Semana 7
     ├── services/
@@ -57,6 +57,35 @@ npm run dev
 ```
 La aplicación se abrirá automáticamente en `http://localhost:5173`.
 
+
+---
+
+## Tema claro y paleta de colores
+
+La aplicación utiliza un único tema claro, incluso si el sistema operativo
+prefiere modo oscuro. Los seis colores principales están definidos en
+`src/styles/main.css`:
+
+- Petróleo `#35627A`: navegación y acciones principales.
+- Rosa `#E5AEA9`: fondos destacados y detalles cálidos.
+- Terracota `#B46258`: incidencias y puntos destacados en gráficos.
+- Lavanda `#A6A9D0`: pestañas activas, categorías y pronósticos.
+- Blanco suave `#F5F5F5`: fondo general.
+- Salvia `#8E9A98`: bordes, superficies suaves y nodos secundarios.
+
+Se complementan con blanco para las tarjetas y variantes oscuras para asegurar
+el contraste del texto. Los SVG y las barras utilizan variables `--chart-*`;
+los nombres de acentos de las vistas existentes se resuelven a esta paleta.
+
+- Los pronósticos usan líneas discontinuas y marcadores cuadrados; el grafo
+  diferencia regiones, polos vendedores y categorías con formas y contornos.
+- Los tres PNG del dashboard se generan con la misma paleta en
+  `src/eda_olist.py`. Para actualizarlos, ejecutar `python src/eda_olist.py`
+  desde la raíz con el dataset original disponible.
+- El servidor Python envía `Cache-Control: no-store` para HTML, CSS, JavaScript,
+  imágenes y API. Las entradas CSS y JavaScript también tienen una revisión en
+  su URL para invalidar las copias de la interfaz anterior. Tras cambiar el
+  código de `server.py`, reiniciar el servidor para cargarlo.
 
 ---
 

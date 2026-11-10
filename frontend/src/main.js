@@ -13,7 +13,6 @@ import { exportToCSV } from './utils/formatters.js';
 
 const appState = {
   currentView: 'dashboard', // 'dashboard' | 'quality' | 'dictionary' | 'models' | 'roadmap'
-  theme: 'dark',
   globalSearch: '',
   // Dashboard state
   excludeExtremeMonths: false,
@@ -236,10 +235,6 @@ function renderAppShell() {
               />
             </div>
 
-            <button class="btn" data-action="toggle-theme" title="Cambiar tema Oscuro / Claro">
-              ${appState.theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
-            </button>
-
             <a
               class="btn"
               href="${dataStore.meta.repoUrl}"
@@ -263,6 +258,16 @@ function renderAppShell() {
 function attachGlobalListeners() {
   const root = document.getElementById('app');
   if (!root) return;
+
+  root.addEventListener('keydown', event => {
+    const node = event.target.closest('.graph-node');
+    if (node && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      appState.selectedGraphNode = node.getAttribute('data-node-id');
+      renderAppShell();
+      root.querySelector(`.graph-node[data-node-id="${appState.selectedGraphNode}"]`)?.focus();
+    }
+  });
 
   root.addEventListener('click', event => {
     const graphNode = event.target.closest('.graph-node');
@@ -299,14 +304,6 @@ function attachGlobalListeners() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           renderAppShell();
         }
-        break;
-      }
-
-      case 'toggle-theme': {
-        appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.classList.toggle('light', appState.theme === 'light');
-        document.documentElement.classList.toggle('dark', appState.theme === 'dark');
-        renderAppShell();
         break;
       }
 

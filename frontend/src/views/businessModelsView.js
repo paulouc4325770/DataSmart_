@@ -162,7 +162,7 @@ export function renderBusinessModelsView(store, state) {
                       seg => `
                     <tr>
                       <td>
-                        <strong style="color:${seg.color}">●</strong>
+                        <strong aria-hidden="true" style="color:${seg.color}">${seg.marker}</strong>
                         <strong>${seg.segment}</strong>
                       </td>
                       <td class="mono">${formatInt(seg.customers)}</td>
@@ -191,14 +191,14 @@ export function renderBusinessModelsView(store, state) {
                 <span>Clientes de Compra Única (1 pedido)</span>
                 <span class="mono">96,88%</span>
               </div>
-              <div class="bar-track"><div class="bar-fill" style="width:96.88%; background:#3b82f6;"></div></div>
+              <div class="bar-track"><div class="bar-fill" style="width:96.88%; background:var(--chart-primary);"></div></div>
             </div>
             <div class="bar-row">
               <div class="bar-row-label">
                 <span>Clientes Recurrentes (≥ 2 pedidos)</span>
                 <span class="mono">3,12%</span>
               </div>
-              <div class="bar-track"><div class="bar-fill" style="width:12%; background:#10b981;"></div></div>
+              <div class="bar-track"><div class="bar-fill" style="width:12%; background:var(--chart-secondary);"></div></div>
             </div>
             <div class="method-note" style="margin-top:auto;">
               <strong>Delimitación Metodológica (Sección 5):</strong>
@@ -250,6 +250,11 @@ export function renderBusinessModelsView(store, state) {
 
           <div class="svg-chart-container">
             ${renderMonthlySalesSVG(cleanHistory, { showForecast: true, forecastMonths })}
+          </div>
+          <div class="chart-legend" aria-label="Leyenda del pronóstico">
+            <span><i class="chart-legend-line" aria-hidden="true"></i>Ventas históricas</span>
+            <span><i class="chart-legend-line forecast" aria-hidden="true"></i>Pronóstico</span>
+            <span><i class="chart-legend-band" aria-hidden="true"></i>Intervalo de confianza 90%</span>
           </div>
 
           <div class="grid-3">
@@ -370,7 +375,7 @@ export function renderBusinessModelsView(store, state) {
                     <span class="mono" style="color:var(--accent-cyan);">SHAP: ${item.shapValue.toFixed(2)}</span>
                   </div>
                   <div class="bar-track">
-                    <div class="bar-fill" style="width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #3b82f6, #06b6d4);"></div>
+                    <div class="bar-fill" style="width:${widthPct.toFixed(1)}%; background:var(--chart-primary);"></div>
                   </div>
                   <div style="font-size:0.73rem; color:var(--text-muted);">${item.impact}</div>
                 </div>
@@ -435,6 +440,10 @@ export function renderBusinessModelsView(store, state) {
               <span class="chip chip-blue">Nodo Activo: ${selectedGraphNode}</span>
             </div>
             ${renderEntityNetworkSVG(selectedGraphNode)}
+            <div class="chart-legend" aria-label="Leyenda del grafo">
+              <span>○ Región</span><span>◇ Polo vendedor</span><span>□ Categoría</span>
+              <span>Contorno doble: nodo seleccionado</span>
+            </div>
           </div>
 
           <div style="background:var(--bg-secondary); padding:1.1rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.8rem;">

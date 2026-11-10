@@ -111,14 +111,14 @@ export const OFFICIAL_KPIS = [
 
 // Sección 8.1: Distribución de los estados de pedidos
 export const ORDER_STATUS_DISTRIBUTION = [
-  { status: 'delivered', label: 'Entregado', count: 96478, pct: 97.02, color: '#10b981' },
-  { status: 'shipped', label: 'Enviado', count: 1107, pct: 1.11, color: '#3b82f6' },
-  { status: 'canceled', label: 'Cancelado', count: 625, pct: 0.63, color: '#f43f5e' },
-  { status: 'unavailable', label: 'No disponible', count: 609, pct: 0.61, color: '#f59e0b' },
-  { status: 'invoiced', label: 'Facturado', count: 314, pct: 0.32, color: '#8b5cf6' },
-  { status: 'processing', label: 'En preparación', count: 301, pct: 0.30, color: '#06b6d4' },
-  { status: 'created', label: 'Creado', count: 5, pct: 0.01, color: '#94a3b8' },
-  { status: 'approved', label: 'Aprobado', count: 2, pct: 0.00, color: '#64748b' },
+  { status: 'delivered', label: 'Entregado', count: 96478, pct: 97.02, color: 'var(--chart-primary)', marker: '●' },
+  { status: 'shipped', label: 'Enviado', count: 1107, pct: 1.11, color: 'var(--chart-secondary)', marker: '◆' },
+  { status: 'canceled', label: 'Cancelado', count: 625, pct: 0.63, color: 'var(--chart-tertiary)', marker: '×' },
+  { status: 'unavailable', label: 'No disponible', count: 609, pct: 0.61, color: 'var(--chart-tertiary)', marker: '△' },
+  { status: 'invoiced', label: 'Facturado', count: 314, pct: 0.32, color: 'var(--chart-secondary)', marker: '■' },
+  { status: 'processing', label: 'En preparación', count: 301, pct: 0.30, color: 'var(--chart-muted)', marker: '◇' },
+  { status: 'created', label: 'Creado', count: 5, pct: 0.01, color: 'var(--chart-muted)', marker: '○' },
+  { status: 'approved', label: 'Aprobado', count: 2, pct: 0.00, color: 'var(--chart-primary)', marker: '✓' },
 ];
 
 // resultados/ventas_mensuales.csv — Serie temporal de artículos en pedidos entregados
@@ -557,11 +557,11 @@ export const BUSINESS_QUESTIONS = [
 
 // Datos para el Laboratorio Analítico Interactivo (RFM, Asociación, Logística/SHAP, NLP, Grafos)
 export const RFM_SEGMENTS_PREVIEW = [
-  { segment: 'Campeones / Alto Valor (Champions)', customers: 8420, sharePct: 8.76, avgRecencyDays: 95, avgFrequency: 2.15, avgMonetaryBRL: 412.80, color: '#10b981', action: 'Programa VIP y acceso anticipado a lanzamientos' },
-  { segment: 'Compradores Recientes Prometedores', customers: 29850, sharePct: 31.06, avgRecencyDays: 118, avgFrequency: 1.02, avgMonetaryBRL: 148.50, color: '#3b82f6', action: 'Cupón de segunda compra en categorías afines (FP-Growth)' },
-  { segment: 'Ticket Alto Estacional (Big Spenders)', customers: 11940, sharePct: 12.43, avgRecencyDays: 240, avgFrequency: 1.05, avgMonetaryBRL: 389.20, color: '#8b5cf6', action: 'Campañas en fechas clave (Black Friday / Día de la Madre)' },
-  { segment: 'En Riesgo / Inactivos Medios', customers: 24610, sharePct: 25.61, avgRecencyDays: 345, avgFrequency: 1.00, avgMonetaryBRL: 92.40, color: '#f59e0b', action: 'Reactivación con descuento en flete (freight_value)' },
-  { segment: 'Hibernando / Compra Única Antigua', customers: 21276, sharePct: 22.14, avgRecencyDays: 490, avgFrequency: 1.00, avgMonetaryBRL: 64.10, color: '#64748b', action: 'Exclusión de pauta costosa; retargeting orgánico' },
+  { segment: 'Campeones / Alto Valor (Champions)', customers: 8420, sharePct: 8.76, avgRecencyDays: 95, avgFrequency: 2.15, avgMonetaryBRL: 412.80, color: 'var(--chart-primary)', marker: '★', action: 'Programa VIP y acceso anticipado a lanzamientos' },
+  { segment: 'Compradores Recientes Prometedores', customers: 29850, sharePct: 31.06, avgRecencyDays: 118, avgFrequency: 1.02, avgMonetaryBRL: 148.50, color: 'var(--chart-secondary)', marker: '●', action: 'Cupón de segunda compra en categorías afines (FP-Growth)' },
+  { segment: 'Ticket Alto Estacional (Big Spenders)', customers: 11940, sharePct: 12.43, avgRecencyDays: 240, avgFrequency: 1.05, avgMonetaryBRL: 389.20, color: 'var(--chart-tertiary)', marker: '◆', action: 'Campañas en fechas clave (Black Friday / Día de la Madre)' },
+  { segment: 'En Riesgo / Inactivos Medios', customers: 24610, sharePct: 25.61, avgRecencyDays: 345, avgFrequency: 1.00, avgMonetaryBRL: 92.40, color: 'var(--accent-rose)', marker: '△', action: 'Reactivación con descuento en flete (freight_value)' },
+  { segment: 'Hibernando / Compra Única Antigua', customers: 21276, sharePct: 22.14, avgRecencyDays: 490, avgFrequency: 1.00, avgMonetaryBRL: 64.10, color: 'var(--chart-muted)', marker: '◇', action: 'Exclusión de pauta costosa; retargeting orgánico' },
 ];
 
 export const SHAP_FEATURE_IMPORTANCE = [

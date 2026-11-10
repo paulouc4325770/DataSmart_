@@ -32,8 +32,8 @@ export function renderMonthlySalesSVG(series, options = {}) {
     .map(tick => {
       const y = getY(tick);
       return `
-        <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" stroke="rgba(148,163,184,0.14)" stroke-dasharray="4 4" />
-        <text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">
+        <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" stroke="var(--chart-grid)" stroke-dasharray="4 4" />
+        <text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" fill="var(--text-secondary)" font-size="11" font-family="JetBrains Mono, monospace">
           ${formatBRLCompact(tick)}
         </text>
       `;
@@ -77,15 +77,15 @@ export function renderMonthlySalesSVG(series, options = {}) {
       .join(' ');
 
     forecastElements = `
-      <path d="${bandTop} ${bandBottom} Z" fill="rgba(168, 85, 247, 0.16)" />
-      <path d="${fLine}" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="6 4" />
+      <path d="${bandTop} ${bandBottom} Z" fill="var(--chart-band)" />
+      <path d="${fLine}" fill="none" stroke="var(--chart-secondary)" stroke-width="2.5" stroke-dasharray="6 4" />
       ${fCoords
         .slice(1)
         .map(
           pt => `
-        <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4.5" fill="#a855f7" stroke="#0f172a" stroke-width="2">
+        <rect x="${(pt.x - 4).toFixed(1)}" y="${(pt.y - 4).toFixed(1)}" width="8" height="8" fill="var(--lavender)" stroke="var(--chart-secondary)" stroke-width="2">
           <title>${pt.d.monthLabel} (Pronóstico): ${formatBRL(pt.d.salesBRL)}</title>
-        </circle>
+        </rect>
       `
         )
         .join('')}
@@ -100,24 +100,31 @@ export function renderMonthlySalesSVG(series, options = {}) {
       return `
         ${
           showLabel
-            ? `<text x="${pt.x.toFixed(1)}" y="${height - 16}" text-anchor="middle" fill="#94a3b8" font-size="10.5" transform="rotate(-22 ${pt.x.toFixed(1)} ${height - 16})">${pt.d.monthLabel}</text>`
+            ? `<text x="${pt.x.toFixed(1)}" y="${height - 16}" text-anchor="middle" fill="var(--text-secondary)" font-size="10.5" transform="rotate(-22 ${pt.x.toFixed(1)} ${height - 16})">${pt.d.monthLabel}</text>`
             : ''
         }
         <g class="svg-point-group">
-          <circle
+          ${pt.d.isExtreme ? `
+          <rect
+            x="${(pt.x - 4).toFixed(1)}" y="${(pt.y - 4).toFixed(1)}" width="8" height="8"
+            transform="rotate(45 ${pt.x.toFixed(1)} ${pt.y.toFixed(1)})"
+            fill="var(--bg-surface)" stroke="var(--chart-primary)" stroke-width="2"
+          >
+            <title>${pt.d.monthLabel}: ${formatBRL(pt.d.salesBRL)} (${pt.d.note})</title>
+          </rect>` : `<circle
             cx="${pt.x.toFixed(1)}"
             cy="${pt.y.toFixed(1)}"
             r="${isPeak ? 6.5 : 4.2}"
-            fill="${isPeak ? '#10b981' : pt.d.isExtreme ? '#f59e0b' : '#3b82f6'}"
-            stroke="#0f172a"
+            fill="${isPeak ? 'var(--chart-tertiary)' : 'var(--chart-primary)'}"
+            stroke="var(--bg-surface)"
             stroke-width="2"
           >
             <title>${pt.d.monthLabel}: ${formatBRL(pt.d.salesBRL)} (${pt.d.note})</title>
-          </circle>
+          </circle>`}
           ${
             isPeak
-              ? `<rect x="${(pt.x - 68).toFixed(1)}" y="${(pt.y - 30).toFixed(1)}" width="136" height="20" rx="5" fill="#10b981" />
-                 <text x="${pt.x.toFixed(1)}" y="${(pt.y - 16).toFixed(1)}" text-anchor="middle" fill="#06281e" font-size="10" font-weight="700">Pico: R$ 987.765</text>`
+              ? `<rect x="${(pt.x - 68).toFixed(1)}" y="${(pt.y - 30).toFixed(1)}" width="136" height="20" rx="5" fill="var(--accent-rose)" />
+                 <text x="${pt.x.toFixed(1)}" y="${(pt.y - 16).toFixed(1)}" text-anchor="middle" fill="var(--text-on-accent)" font-size="10" font-weight="700">Pico: R$ 987.765</text>`
               : ''
           }
         </g>
@@ -129,13 +136,13 @@ export function renderMonthlySalesSVG(series, options = {}) {
     <svg viewBox="0 0 ${width} ${height}" width="100%" height="auto" role="img" aria-label="Evolución mensual de ventas Olist">
       <defs>
         <linearGradient id="salesAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.36" />
-          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
+          <stop offset="0%" stop-color="var(--chart-primary)" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="var(--chart-primary)" stop-opacity="0.0" />
         </linearGradient>
       </defs>
       ${gridLines}
       <path d="${areaPath}" fill="url(#salesAreaGrad)" />
-      <path d="${linePath}" fill="none" stroke="#3b82f6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="${linePath}" fill="none" stroke="var(--chart-primary)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
       ${forecastElements}
       ${pointsMarkup}
     </svg>
@@ -147,13 +154,13 @@ export function renderMonthlySalesSVG(series, options = {}) {
  */
 export function renderEntityNetworkSVG(selectedNode = 'SP') {
   const nodes = [
-    { id: 'SP', label: 'São Paulo (SP)', sub: '70.4% Vendedores | 41.9% Clientes', x: 360, y: 155, r: 34, color: '#3b82f6', type: 'Hub Principal' },
-    { id: 'RJ', label: 'Rio de Janeiro (RJ)', sub: '12.9% Clientes | Receptor Neto', x: 165, y: 85, r: 24, color: '#06b6d4', type: 'Nodo Cliente' },
-    { id: 'MG', label: 'Minas Gerais (MG)', sub: '11.7% Clientes | 8.2% Vendedores', x: 565, y: 85, r: 24, color: '#10b981', type: 'Nodo Mixto' },
-    { id: 'PR', label: 'Paraná (PR)', sub: '7.4% Vendedores | Polo Sur', x: 580, y: 235, r: 22, color: '#8b5cf6', type: 'Polo Vendedor' },
-    { id: 'RS', label: 'Rio Grande do Sul (RS)', sub: '5.5% Clientes | Alta Distancia', x: 160, y: 235, r: 21, color: '#f59e0b', type: 'Nodo Cliente' },
-    { id: 'CAT_BS', label: 'Belleza y Salud', sub: 'R$ 1,23M (Top 1)', x: 360, y: 42, r: 20, color: '#ec4899', type: 'Categoría' },
-    { id: 'CAT_CM', label: 'Cama, Mesa y Baño', sub: 'R$ 1,02M (Top 3)', x: 360, y: 270, r: 20, color: '#f43f5e', type: 'Categoría' },
+    { id: 'SP', label: 'São Paulo (SP)', sub: '70.4% Vendedores | 41.9% Clientes', x: 360, y: 155, r: 34, shape: 'circle', type: 'Hub Principal' },
+    { id: 'RJ', label: 'Rio de Janeiro (RJ)', sub: '12.9% Clientes | Receptor Neto', x: 165, y: 85, r: 24, shape: 'circle', type: 'Nodo Cliente' },
+    { id: 'MG', label: 'Minas Gerais (MG)', sub: '11.7% Clientes | 8.2% Vendedores', x: 565, y: 85, r: 24, shape: 'circle', type: 'Nodo Mixto' },
+    { id: 'PR', label: 'Paraná (PR)', sub: '7.4% Vendedores | Polo Sur', x: 580, y: 235, r: 22, shape: 'diamond', type: 'Polo Vendedor' },
+    { id: 'RS', label: 'Rio Grande do Sul (RS)', sub: '5.5% Clientes | Alta Distancia', x: 160, y: 235, r: 21, shape: 'circle', type: 'Nodo Cliente' },
+    { id: 'CAT_BS', label: 'Belleza y Salud', sub: 'R$ 1,23M (Top 1)', x: 360, y: 42, r: 20, shape: 'square', type: 'Categoría' },
+    { id: 'CAT_CM', label: 'Cama, Mesa y Baño', sub: 'R$ 1,02M (Top 3)', x: 360, y: 270, r: 20, shape: 'square', type: 'Categoría' },
   ];
 
   const edges = [
@@ -179,7 +186,8 @@ export function renderEntityNetworkSVG(selectedNode = 'SP') {
         <g>
           <line
             x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
-            stroke="${highlighted ? '#3b82f6' : 'rgba(148,163,184,0.25)'}"
+            stroke="${highlighted ? 'var(--chart-primary)' : 'var(--chart-muted)'}"
+            stroke-dasharray="${highlighted ? 'none' : '4 4'}"
             stroke-width="${highlighted ? e.width + 1 : e.width}"
           >
             <title>${a.label} ↔ ${b.label}: ${e.weight}</title>
@@ -192,22 +200,33 @@ export function renderEntityNetworkSVG(selectedNode = 'SP') {
   const nodesSvg = nodes
     .map(n => {
       const isSelected = n.id === selectedNode;
+      const radius = isSelected ? n.r + 4 : n.r;
+      const fill = n.id === 'SP' ? 'var(--petrol)'
+        : n.shape === 'square' ? 'var(--lavender)'
+        : n.shape === 'diamond' || n.id === 'MG' ? 'var(--pink)'
+        : 'var(--chart-node-fill)';
+      const shape = (size, fill, stroke, strokeWidth) => {
+        const attrs = `fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"`;
+        if (n.shape === 'square') {
+          return `<rect x="${n.x - size}" y="${n.y - size}" width="${size * 2}" height="${size * 2}" rx="5" ${attrs} />`;
+        }
+        if (n.shape === 'diamond') {
+          return `<polygon points="${n.x},${n.y - size} ${n.x + size},${n.y} ${n.x},${n.y + size} ${n.x - size},${n.y}" ${attrs} />`;
+        }
+        return `<circle cx="${n.x}" cy="${n.y}" r="${size}" ${attrs} />`;
+      };
       return `
-        <g class="graph-node" data-node-id="${n.id}" style="cursor:pointer">
-          <circle
-            cx="${n.x}" cy="${n.y}" r="${isSelected ? n.r + 4 : n.r}"
-            fill="${n.color}"
-            fill-opacity="${isSelected ? '0.95' : '0.8'}"
-            stroke="${isSelected ? '#ffffff' : '#0f172a'}"
-            stroke-width="${isSelected ? '3' : '2'}"
-          />
-          <text x="${n.x}" y="${n.y + 4}" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">
+        <g class="graph-node" data-node-id="${n.id}" role="button" tabindex="0" aria-label="${n.label}: ${n.type}" aria-pressed="${isSelected}" style="cursor:pointer">
+          <title>${n.label} — ${n.type}</title>
+          ${isSelected ? shape(radius + 5, 'none', 'var(--chart-primary)', 1.5) : ''}
+          ${shape(radius, fill, isSelected ? 'var(--chart-primary)' : 'var(--chart-muted)', isSelected ? 3 : 2)}
+          <text x="${n.x}" y="${n.y + 4}" text-anchor="middle" fill="${n.id === 'SP' ? 'var(--text-on-accent)' : 'var(--chart-node-text)'}" font-size="11" font-weight="700">
             ${n.id.replace('CAT_', '')}
           </text>
-          <text x="${n.x}" y="${n.y + n.r + 15}" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">
+          <text x="${n.x}" y="${n.y + n.r + 15}" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600">
             ${n.label}
           </text>
-          <text x="${n.x}" y="${n.y + n.r + 28}" text-anchor="middle" fill="#94a3b8" font-size="9.5">
+          <text x="${n.x}" y="${n.y + n.r + 28}" text-anchor="middle" fill="var(--text-secondary)" font-size="9.5">
             ${n.sub}
           </text>
         </g>
@@ -216,7 +235,7 @@ export function renderEntityNetworkSVG(selectedNode = 'SP') {
     .join('');
 
   return `
-    <svg viewBox="0 0 720 320" width="100%" height="auto" role="img" aria-label="Grafo NetworkX de Olist">
+    <svg viewBox="0 0 720 320" width="100%" height="auto" role="group" aria-label="Grafo NetworkX de Olist">
       ${edgesSvg}
       ${nodesSvg}
     </svg>
