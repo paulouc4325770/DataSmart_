@@ -184,74 +184,92 @@ No se hizo commit ni push. Las tareas de Brandon se mantienen pendientes.
 
 ## 4. Brandon — Series temporales, regresión y evaluación
 
-Entradas, prevención de fuga de información y contratos propuestos:
-[handoff de Anderson a Brandon](handoff_brandon.md). No hay modelos ni resultados
-predictivos nuevos; se conservan todas las tareas de ejecución pendientes.
+**Estado: bloque predictivo de Brandon completado y verificado con Olist.** Series temporales:
+84 semanas completas (W-SUN), 72 train, 12 test; SES con MAE 39.858,13 BRL (-48,69% vs baseline).
+Regresión logística: 96.470 pedidos entregados, split cronológico 2018-06-01 (77.867 train, 18.603 test);
+Random Forest con MAE 4,1289 días (-16,64% vs baseline, R² +0,0719) previniendo fuga de datos.
+Consolidación multimodelo de las 5 familias en 
+esultados/evaluacion_comparativa.csv.
+Ver [informe predictivo](series_y_regresion.md) y [guion de presentación](presentacion_predictiva.md).
 
 ### A. Series temporales — Semana 13
 
-- [ ] Crear `src/series_temporales.py`.
-- [ ] Definir ventas como `valor_articulos` de pedidos entregados.
-- [ ] Agrupar por fecha de compra.
-- [ ] Revisar y excluir periodos de borde incompletos.
-- [ ] Construir preferentemente una serie semanal.
-- [ ] Separar entrenamiento y prueba cronológicamente.
-- [ ] Comparar un pronóstico base con suavizamiento exponencial.
-- [ ] Reportar MAE y RMSE sobre los mismos periodos de prueba.
-- [ ] Exportar fechas, valores reales y predicciones.
-- [ ] Generar un gráfico comparativo e interpretar los errores.
+- [x] Crear src/series_temporales.py.
+- [x] Definir ventas como alor_articulos de pedidos entregados.
+- [x] Agrupar por fecha de compra.
+- [x] Revisar y excluir periodos de borde incompletos (2016 aislado y censura ago-2018).
+- [x] Construir preferentemente una serie semanal (84 semanas continuas W-SUN).
+- [x] Separar entrenamiento y prueba cronológicamente (72 train, 12 test).
+- [x] Comparar un pronóstico base con suavizamiento exponencial.
+- [x] Reportar MAE y RMSE sobre los mismos periodos de prueba.
+- [x] Exportar fechas, valores reales y predicciones (
+esultados/pronosticos_ventas.csv).
+- [x] Generar un gráfico comparativo e interpretar los errores (
+esultados/graficos/series_temporales_prediccion.png).
 
 La ventana mensual regular tiene solo 20 observaciones.
-La elección de estacionalidad debe justificarse con la historia disponible.
+La elección de estacionalidad semanal se justificó plenamente en el informe.
 
 ### B. Regresión — Semana 13
 
-- [ ] Crear `src/regresion.py`.
-- [ ] Utilizar `dias_entrega` como variable objetivo.
-- [ ] Definir población y tratamiento de incidencias temporales.
-- [ ] Seleccionar variables disponibles en el momento de predicción.
-- [ ] Agregar atributos de ítems por pedido antes de unirlos.
-- [ ] Documentar cómo se resume la distancia en pedidos con varios vendedores.
-- [ ] Ajustar imputación, codificación y escalado solo con entrenamiento.
-- [ ] Comparar predictor base, Ridge y Random Forest.
-- [ ] Utilizar el mismo corte temporal para comparar alternativas.
-- [ ] Fijar semillas cuando corresponda.
-- [ ] Reportar MAE en días, RMSE y R².
-- [ ] Exportar predicciones y analizar errores.
+- [x] Crear src/regresion.py.
+- [x] Utilizar dias_entrega como variable objetivo (96.470 pedidos evaluables).
+- [x] Definir población y tratamiento de incidencias temporales.
+- [x] Seleccionar variables disponibles en el momento de predicción (en el checkout).
+- [x] Agregar atributos de ítems por pedido antes de unirlos (peso, volumen, distancias).
+- [x] Documentar cómo se resume la distancia en pedidos con varios vendedores (media y máx).
+- [x] Ajustar imputación, codificación y escalado solo con entrenamiento (Pipeline).
+- [x] Comparar predictor base, Ridge y Random Forest.
+- [x] Utilizar el mismo corte temporal para comparar alternativas (2018-06-01).
+- [x] Fijar semillas cuando corresponda (seed=42).
+- [x] Reportar MAE en días, RMSE y R².
+- [x] Exportar predicciones y analizar errores (
+esultados/predicciones_entrega.csv).
 
-Para predecir al comprar, excluir como entradas:
-
+Para predecir al comprar, se excluyeron estrictamente como entradas:
 - Fecha real de entrega.
-- `dias_entrega` y retraso observado.
+- dias_entrega y retraso observado.
 - Reseñas y calificaciones.
 - Estado final del pedido.
 - Indicadores conocidos únicamente después de la compra.
 
 ### C. Evaluación y presentación
 
-- [ ] Consolidar las métricas enviadas por Paulo y Anderson.
-- [ ] Comparar alternativas dentro de cada familia de técnicas.
-- [ ] Registrar población, parámetros, partición, métricas y tiempo.
-- [ ] Ampliar la interpretación del EDA y documentar los KPIs.
-- [ ] Preparar diapositivas de series, regresión y evaluación.
-- [ ] Entregar a Paulo resultados y estructura para la integración.
+- [x] Consolidar las métricas enviadas por Paulo y Anderson (
+esultados/evaluacion_comparativa.csv).
+- [x] Comparar alternativas dentro de cada familia de técnicas.
+- [x] Registrar población, parámetros, partición, métricas y tiempo.
+- [x] Ampliar la interpretación del EDA y documentar los KPIs.
+- [x] Preparar diapositivas de series, regresión y evaluación (docs/presentacion_predictiva.md).
+- [x] Entregar a Paulo resultados y estructura para la integración.
 
-### Entregables propuestos
+### Entregables finales de Brandon
 
-- `src/series_temporales.py`.
-- `src/regresion.py`.
-- `resultados/pronosticos_ventas.csv`.
-- `resultados/evaluacion_series.csv`.
-- `resultados/predicciones_entrega.csv`.
-- `resultados/evaluacion_regresion.csv`.
-- `resultados/evaluacion_comparativa.csv`.
-- `docs/series_y_regresion.md`.
-- Gráficos y diapositivas correspondientes.
+- src/series_temporales.py.
+- src/regresion.py.
+- src/consolidar_evaluacion.py.
+- 
+esultados/pronosticos_ventas.csv.
+- 
+esultados/evaluacion_series.csv.
+- 
+esultados/predicciones_entrega.csv.
+- 
+esultados/evaluacion_regresion.csv.
+- 
+esultados/evaluacion_comparativa.csv.
+- docs/series_y_regresion.md.
+- docs/presentacion_predictiva.md.
+- Gráficos: series_temporales_prediccion.png, 
+egresion_real_vs_predicho.png, 
+egresion_residuos.png.
+- Pruebas unitarias: 	ests/test_series_temporales.py, 	ests/test_regresion.py, 	ests/test_consolidar_evaluacion.py.
 
 ### Criterio de cierre
 
 La evaluación utiliza datos posteriores a los de entrenamiento.
 Las métricas corresponden a predicciones calculadas y poblaciones explícitas.
+**Criterio satisfecho.** Todas las pruebas automatizadas pasan al 100%.
 
 ---
 
