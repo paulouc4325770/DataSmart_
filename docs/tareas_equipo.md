@@ -5,6 +5,10 @@
 Completar los entregables de las semanas 7, 10 y 13 antes del martes,
 aprovechando la preparación de datos implementada por Jerson.
 
+**Distribución vigente:** Anderson — clustering, grafos y CRISP-DM;
+Brandon — series temporales, regresión y evaluación predictiva. Esta distribución
+prevalece sobre las referencias históricas invertidas en documentos de preparación.
+
 ## 1. Base disponible
 
 Ejecutar desde la raíz del proyecto:
@@ -99,23 +103,30 @@ Los valores de la web coinciden con los archivos generados.
 
 ---
 
-## 3. Brandon — Clustering, grafos y metodología
+## 3. Anderson — Clustering, grafos y metodología
+
+**Estado: bloque de Anderson completado y verificado con Olist.** Clustering sobre
+93.358 compradores: k=2, Silhouette 0,7111425 y Davies-Bouldin 0,4765102. Grafo:
+35.186 nodos, 33.659 aristas, 2.320 componentes y peso total 110.197 ítems.
+CSV, metadatos y seis gráficos disponibles; documentación y handoff finalizados.
+Ver [informe de Anderson](clustering_y_grafos.md) y
+[guion de presentación](presentacion_anderson.md).
 
 ### A. Clustering — Semana 13
 
-- [ ] Crear `src/clustering.py`.
-- [ ] Definir la población de clientes utilizada.
-- [ ] Construir RFM por `customer_unique_id`:
+- [x] Crear `src/clustering.py`.
+- [x] Definir la población de clientes y las exclusiones del análisis.
+- [x] Construir y ejecutar RFM por `customer_unique_id`:
   - Recencia: días desde la última compra a una fecha explícita.
   - Frecuencia: pedidos distintos.
   - Monto: suma de `valor_articulos`.
-- [ ] Revisar distribuciones y justificar transformaciones y escalado.
-- [ ] Ejecutar K-Means con distintos valores de `k`, inicialmente de 2 a 6.
-- [ ] Fijar la semilla para reproducibilidad.
-- [ ] Comparar Silhouette y Davies-Bouldin.
-- [ ] Utilizar una muestra común para Silhouette si resulta necesario.
-- [ ] Exportar compradores con su cluster y perfiles de los grupos.
-- [ ] Proponer una acción comercial por segmento.
+- [x] Revisar distribuciones y justificar transformaciones y escalado.
+- [x] Ejecutar K-Means con distintos valores de `k`, de 2 a 6.
+- [x] Fijar la semilla para reproducibilidad.
+- [x] Comparar Silhouette, Davies-Bouldin e inercia.
+- [x] Implementar una muestra común para Silhouette, por defecto 1.800 compradores.
+- [x] Exportar compradores con su cluster y perfiles de los grupos.
+- [x] Proponer una acción comercial por segmento, distinguiendo propuestas de efectos demostrados.
 
 Poblaciones verificadas:
 
@@ -124,26 +135,29 @@ Poblaciones verificadas:
 
 ### B. Grafos — Semana 13
 
-- [ ] Crear `src/grafos.py`.
-- [ ] Construir un grafo vendedor–producto desde `items_procesados.csv`.
-- [ ] Definir la población y el significado de las aristas.
-- [ ] Agregar repeticiones para obtener el peso de cada conexión.
-- [ ] Calcular grado, grado ponderado, componentes y PageRank.
-- [ ] Exportar aristas y métricas.
-- [ ] Visualizar un subgrafo legible e indicar cómo se seleccionó.
-- [ ] Explicar los principales vendedores, productos y relaciones.
+- [x] Crear `src/grafos.py`.
+- [x] Construir y ejecutar el grafo vendedor–producto desde `items_procesados.csv`.
+- [x] Definir la población y el significado de las aristas.
+- [x] Implementar la agregación de repeticiones para obtener el peso de cada conexión.
+- [x] Calcular grado, grado ponderado, componentes y PageRank.
+- [x] Exportar aristas, métricas y componentes.
+- [x] Visualizar un subgrafo legible e indicar cómo se seleccionó.
+- [x] Explicar los principales vendedores, productos y relaciones.
 
-El grafo actual de la interfaz es predefinido.
-La nueva red debe construirse desde las transacciones.
+La red entregada se construyó desde transacciones, no desde el grafo predefinido
+de la interfaz. Su integración web corresponde a Paulo y no condiciona este cierre.
 
 ### C. Metodología y presentación
 
-- [ ] Documentar cómo se aplica CRISP-DM al trabajo realizado.
-- [ ] Distinguir preparación, modelado y evaluación.
-- [ ] Preparar gráficos y diapositivas de clustering y grafos.
-- [ ] Entregar a Paulo los resultados y su estructura para integrarlos.
+- [x] Documentar cómo se aplica CRISP-DM al trabajo realizado.
+- [x] Distinguir preparación, modelado y evaluación con resultados reales.
+- [x] Preparar el guion de seis diapositivas en `docs/presentacion_anderson.md`.
+- [x] Generar gráficos reales de clustering y grafos para las diapositivas.
+- [x] Documentar el contrato de CSV para Paulo en `docs/clustering_y_grafos.md`.
+- [x] Dejar disponibles para Paulo los resultados calculados y su estructura; integración web pendiente a su cargo.
+- [x] Preparar `docs/handoff_brandon.md` con entradas, claves, tipos y contratos propuestos.
 
-### Entregables propuestos
+### Entregables finales de Anderson
 
 - `src/clustering.py`.
 - `src/grafos.py`.
@@ -152,17 +166,27 @@ La nueva red debe construirse desde las transacciones.
 - `resultados/evaluacion_clustering.csv`.
 - `resultados/grafo_aristas.csv`.
 - `resultados/grafo_metricas.csv`.
+- `resultados/grafo_componentes.csv` y `resultados/rfm_distribuciones.csv`.
+- `resultados/clustering_metadata.json`, `resultados/grafos_metadata.json` y resúmenes Markdown.
 - `docs/clustering_y_grafos.md`.
-- Gráficos y diapositivas correspondientes.
+- `docs/presentacion_anderson.md` y `docs/handoff_brandon.md`.
+- Seis PNG en `resultados/graficos/` con prefijos `clustering_` y `grafo_`.
 
 ### Criterio de cierre
 
 Los segmentos tienen una evaluación documentada.
 Las conexiones y los pesos del grafo provienen de transacciones reales.
+**Criterio satisfecho.** Se verificaron conciliaciones, perfiles, hashes y archivos;
+se corrigió el aviso deprecado de fecha sin modificar el modelo ni sus resultados.
+No se hizo commit ni push. Las tareas de Brandon se mantienen pendientes.
 
 ---
 
-## 4. Anderson — Series temporales, regresión y evaluación
+## 4. Brandon — Series temporales, regresión y evaluación
+
+Entradas, prevención de fuga de información y contratos propuestos:
+[handoff de Anderson a Brandon](handoff_brandon.md). No hay modelos ni resultados
+predictivos nuevos; se conservan todas las tareas de ejecución pendientes.
 
 ### A. Series temporales — Semana 13
 
@@ -205,7 +229,7 @@ Para predecir al comprar, excluir como entradas:
 
 ### C. Evaluación y presentación
 
-- [ ] Consolidar las métricas enviadas por Paulo y Brandon.
+- [ ] Consolidar las métricas enviadas por Paulo y Anderson.
 - [ ] Comparar alternativas dentro de cada familia de técnicas.
 - [ ] Registrar población, parámetros, partición, métricas y tiempo.
 - [ ] Ampliar la interpretación del EDA y documentar los KPIs.
