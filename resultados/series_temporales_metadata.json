@@ -1,0 +1,14 @@
+﻿{
+  "tecnica": "Series Temporales",
+  "frecuencia": "W-SUN",
+  "total_semanas": 84,
+  "train_semanas": 72,
+  "test_semanas": 12,
+  "train_inicio": "2017-01-15",
+  "train_fin": "2018-05-27",
+  "test_inicio": "2018-06-03",
+  "test_fin": "2018-08-19",
+  "mejor_modelo": "suavizamiento_exponencial_simple",
+  "mejor_mae_brl": 39858.13,
+  "reduccion_mae_vs_baseline_pct": 48.69
+}

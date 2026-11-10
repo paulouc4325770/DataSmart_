@@ -1,0 +1,4 @@
+﻿modelo,frecuencia,train_inicio,train_fin,test_inicio,test_fin,n_train,n_test,mae_brl,rmse_brl,parametros_json,tiempo_ajuste_s,tiempo_prediccion_s
+baseline_ultimo,W-SUN,2017-01-15,2018-05-27,2018-06-03,2018-08-19,72,12,77679.09,86643.0,"{""metodo"": ""naive_last_value"", ""ultimo_valor"": 132510.93}",0.0,0.0005
+suavizamiento_exponencial_simple,W-SUN,2017-01-15,2018-05-27,2018-06-03,2018-08-19,72,12,39858.13,49725.61,"{""alpha"": 0.6405}",0.004,0.004
+suavizamiento_exponencial_holt,W-SUN,2017-01-15,2018-05-27,2018-06-03,2018-08-19,72,12,43183.69,51611.93,"{""alpha"": 0.0, ""beta"": 0.0, ""damping_trend"": 0.9885}",0.0184,0.0035
