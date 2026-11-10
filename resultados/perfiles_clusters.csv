@@ -1,0 +1,5 @@
+﻿cluster,segmento,clientes,pct_clientes,recencia_mediana,recencia_media,frecuencia_mediana,frecuencia_media,monto_mediana_brl,monto_media_brl,descripcion,accion_comercial,color_hex
+0,Nuevos / Prometedores Recientes,16276,17.43,38.1,42.9,1.0,1.0,83.94,116.85,"Compradores adquiridos en el último bimestre, ticket medio y compra única.",Incentivo rápido de segunda compra con cupón de 30 días en categorías afines.,#06b6d4
+1,Compradores Ocasionales de Bajo Ticket,36605,39.21,268.7,285.2,1.0,1.0,44.99,45.11,Clientes inactivos (>8 meses) con gasto económico unitario.,Campañas automáticas de bajo coste por email; evitar subsidio en costos de flete.,#94a3b8
+2,Clientes Leales / Recurrentes,2801,3.0,199.8,220.8,2.0,2.11,182.1,260.05,Compradores con 2 o más pedidos y desembolso acumulado superior a la media.,"Programa de lealtad VIP, soporte preferente y acceso anticipado a novedades.",#10b981
+3,Ticket Alto Inactivo / Gran Desembolso,37676,40.36,261.6,278.9,1.0,1.0,150.0,237.29,Clientes de una sola compra pero con alto gasto unitario (>R$ 150) inactivos.,Reactivación personalizada con productos prémium y ofertas en fechas pico.,#f59e0b

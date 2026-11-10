@@ -1,0 +1,84 @@
+{
+  "ejecutado_en_utc": "2026-11-10T03:29:36.679721+00:00",
+  "python": "3.11.9",
+  "poblacion": "entregados",
+  "poblacion_descripcion": "Compradores de pedidos con estado delivered; N=93358",
+  "compradores_analizados": 93358,
+  "fecha_referencia": "2018-08-30T15:00:37",
+  "variables": [
+    "recencia_dias",
+    "frecuencia",
+    "monto_brl"
+  ],
+  "transformacion": "log1p + StandardScaler",
+  "k_elegido": 4,
+  "semilla": 42,
+  "criterios_seleccion": "Davies-Bouldin mínimo (0.759) entre k>=3 y óptima interpretabilidad de negocio (4 cuadrantes RFM)",
+  "metricas_k4": {
+    "inercia": 83288.78629675932,
+    "silhouette_muestra10k": 0.3912,
+    "davies_bouldin": 0.7591
+  },
+  "perfiles": [
+    {
+      "cluster": 0,
+      "segmento": "Nuevos / Prometedores Recientes",
+      "clientes": 16276,
+      "pct_clientes": 17.43,
+      "recencia_mediana": 38.1,
+      "recencia_media": 42.9,
+      "frecuencia_mediana": 1.0,
+      "frecuencia_media": 1.0,
+      "monto_mediana_brl": 83.94,
+      "monto_media_brl": 116.85,
+      "descripcion": "Compradores adquiridos en el último bimestre, ticket medio y compra única.",
+      "accion_comercial": "Incentivo rápido de segunda compra con cupón de 30 días en categorías afines.",
+      "color_hex": "#06b6d4"
+    },
+    {
+      "cluster": 1,
+      "segmento": "Compradores Ocasionales de Bajo Ticket",
+      "clientes": 36605,
+      "pct_clientes": 39.21,
+      "recencia_mediana": 268.7,
+      "recencia_media": 285.2,
+      "frecuencia_mediana": 1.0,
+      "frecuencia_media": 1.0,
+      "monto_mediana_brl": 44.99,
+      "monto_media_brl": 45.11,
+      "descripcion": "Clientes inactivos (>8 meses) con gasto económico unitario.",
+      "accion_comercial": "Campañas automáticas de bajo coste por email; evitar subsidio en costos de flete.",
+      "color_hex": "#94a3b8"
+    },
+    {
+      "cluster": 2,
+      "segmento": "Clientes Leales / Recurrentes",
+      "clientes": 2801,
+      "pct_clientes": 3.0,
+      "recencia_mediana": 199.8,
+      "recencia_media": 220.8,
+      "frecuencia_mediana": 2.0,
+      "frecuencia_media": 2.11,
+      "monto_mediana_brl": 182.1,
+      "monto_media_brl": 260.05,
+      "descripcion": "Compradores con 2 o más pedidos y desembolso acumulado superior a la media.",
+      "accion_comercial": "Programa de lealtad VIP, soporte preferente y acceso anticipado a novedades.",
+      "color_hex": "#10b981"
+    },
+    {
+      "cluster": 3,
+      "segmento": "Ticket Alto Inactivo / Gran Desembolso",
+      "clientes": 37676,
+      "pct_clientes": 40.36,
+      "recencia_mediana": 261.6,
+      "recencia_media": 278.9,
+      "frecuencia_mediana": 1.0,
+      "frecuencia_media": 1.0,
+      "monto_mediana_brl": 150.0,
+      "monto_media_brl": 237.29,
+      "descripcion": "Clientes de una sola compra pero con alto gasto unitario (>R$ 150) inactivos.",
+      "accion_comercial": "Reactivación personalizada con productos prémium y ofertas en fechas pico.",
+      "color_hex": "#f59e0b"
+    }
+  ]
+}
