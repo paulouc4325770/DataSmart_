@@ -1,0 +1,897 @@
+{
+  "total_nodos": 60,
+  "total_enlaces": 48,
+  "criterio_seleccion": "Top 12 vendedores por PageRank y sus hasta 4 productos estrella",
+  "nodes": [
+    {
+      "id": "2136c70bbe723d338fab53da3c03e6dc",
+      "label": "2136c70b...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 87
+    },
+    {
+      "id": "84f456958365164420cfc80fbe4c7fab",
+      "label": "84f45695...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 106
+    },
+    {
+      "id": "e6609e94d7b022fd6abf6142401618f9",
+      "label": "e6609e94...",
+      "tipo": "producto",
+      "categoria": "fashion_bolsas_e_acessorios",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 6
+    },
+    {
+      "id": "c857b96593773e940454e76efa8eabb3",
+      "label": "c857b965...",
+      "tipo": "producto",
+      "categoria": "moveis_decoracao",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 53
+    },
+    {
+      "id": "fc1d8637c0268af3db482c14b7ef8e75",
+      "label": "fc1d8637...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 57
+    },
+    {
+      "id": "177d3d5bb9d4d29222a222e3b3554f41",
+      "label": "177d3d5b...",
+      "tipo": "producto",
+      "categoria": "papelaria",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 39
+    },
+    {
+      "id": "1095122297a4faeebb3dd2cb4c9b497d",
+      "label": "10951222...",
+      "tipo": "producto",
+      "categoria": "automotivo",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 4
+    },
+    {
+      "id": "99a4788cb24856965c36a24e339b6058",
+      "label": "99a4788c...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 471
+    },
+    {
+      "id": "c3ba4e8d3cb30049213b682e751e9d00",
+      "label": "c3ba4e8d...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 58
+    },
+    {
+      "id": "19fdf478915162331ece9adfd669b88e",
+      "label": "19fdf478...",
+      "tipo": "producto",
+      "categoria": "fashion_calcados",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 4
+    },
+    {
+      "id": "9a442e31dcb07042eca00d73c1933880",
+      "label": "9a442e31...",
+      "tipo": "producto",
+      "categoria": "fashion_bolsas_e_acessorios",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 5
+    },
+    {
+      "id": "8ed094bfe076c568f6bb10feada3f75d",
+      "label": "8ed094bf...",
+      "tipo": "producto",
+      "categoria": "moveis_escritorio",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 68
+    },
+    {
+      "id": "38c56c5c5b16958d95bf8254498ad555",
+      "label": "38c56c5c...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 10
+    },
+    {
+      "id": "07c055536ebf10dfbb6c6db6dbfc36e5",
+      "label": "07c05553...",
+      "tipo": "producto",
+      "categoria": "moveis_decoracao",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 29
+    },
+    {
+      "id": "704ef63ad0ac345842ea734060a83db2",
+      "label": "704ef63a...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 45
+    },
+    {
+      "id": "01f2d77d8a63937c77c7128ce4bd2ada",
+      "label": "01f2d77d...",
+      "tipo": "producto",
+      "categoria": "automotivo",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 4
+    },
+    {
+      "id": "dc404a1496a08f9f5540c8b5d4b92925",
+      "label": "dc404a14...",
+      "tipo": "producto",
+      "categoria": "brinquedos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 38
+    },
+    {
+      "id": "777d2e438a1b645f3aec9bd57e92672c",
+      "label": "777d2e43...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 92
+    },
+    {
+      "id": "a9516a079e37a9c9c36b9b78b10169e8",
+      "label": "a9516a07...",
+      "tipo": "producto",
+      "categoria": "moveis_escritorio",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 59
+    },
+    {
+      "id": "d285360f29ac7fd97640bf0baef03de0",
+      "label": "d285360f...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 22
+    },
+    {
+      "id": "5411e9269501a870cabf632f05655131",
+      "label": "5411e926...",
+      "tipo": "producto",
+      "categoria": "papelaria",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 76
+    },
+    {
+      "id": "386486367c1f9d4f587a8864ccb6902b",
+      "label": "38648636...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 54
+    },
+    {
+      "id": "50d77758742285ff49f340ebdf0df5a7",
+      "label": "50d77758...",
+      "tipo": "producto",
+      "categoria": "eletrodomesticos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 15
+    },
+    {
+      "id": "da8622b14eb17ae2831f4ac5b9dab84a",
+      "label": "da8622b1...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "piracicaba",
+      "grado": 4,
+      "grado_ponderado": 287
+    },
+    {
+      "id": "aba86c093ccdbac75b09111d57e50004",
+      "label": "aba86c09...",
+      "tipo": "producto",
+      "categoria": "moveis_escritorio",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 57
+    },
+    {
+      "id": "7142540dd4c91e2237acb7e911c4eba2",
+      "label": "7142540d...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "penapolis",
+      "grado": 4,
+      "grado_ponderado": 17
+    },
+    {
+      "id": "4a3ca9315b744ce9f8e9374361493884",
+      "label": "4a3ca931...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "ibitinga",
+      "grado": 4,
+      "grado_ponderado": 830
+    },
+    {
+      "id": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "label": "d91fb3b7...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "praia grande",
+      "grado": 4,
+      "grado_ponderado": 48
+    },
+    {
+      "id": "ace5d86cf1ac63cdb76f49e5cd23d2f8",
+      "label": "ace5d86c...",
+      "tipo": "producto",
+      "categoria": "moveis_decoracao",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 28
+    },
+    {
+      "id": "2ff17002562478fb03cd44f09e7ca51a",
+      "label": "2ff17002...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 10
+    },
+    {
+      "id": "c1f5307decb89342351bec53668cffd9",
+      "label": "c1f5307d...",
+      "tipo": "producto",
+      "categoria": "telefonia",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 48
+    },
+    {
+      "id": "d017a2151d543a9885604dc62a3d9dcc",
+      "label": "d017a215...",
+      "tipo": "producto",
+      "categoria": "fashion_bolsas_e_acessorios",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 139
+    },
+    {
+      "id": "036734b5a58d5d4f46b0616ddc047ced",
+      "label": "036734b5...",
+      "tipo": "producto",
+      "categoria": "telefonia",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 43
+    },
+    {
+      "id": "bb42f37fc3d9130e4a4339d24a47dd7c",
+      "label": "bb42f37f...",
+      "tipo": "producto",
+      "categoria": "cama_mesa_banho",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 48
+    },
+    {
+      "id": "dab2413ead0edda9967edbc9bda2a64e",
+      "label": "dab2413e...",
+      "tipo": "producto",
+      "categoria": "telefonia",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 44
+    },
+    {
+      "id": "7fab1a1472fdd934397068931f63f3ca",
+      "label": "7fab1a14...",
+      "tipo": "producto",
+      "categoria": "brinquedos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 48
+    },
+    {
+      "id": "97017430754804328eb9597b7f85da03",
+      "label": "97017430...",
+      "tipo": "producto",
+      "categoria": "telefonia",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 68
+    },
+    {
+      "id": "4df83a41105e00e0845b9d12b5fe601c",
+      "label": "4df83a41...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 10
+    },
+    {
+      "id": "fa1c13f2614d7b5c4749cbc52fecda94",
+      "label": "fa1c13f2...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "sumare",
+      "grado": 4,
+      "grado_ponderado": 52
+    },
+    {
+      "id": "fb55982be901439613a95940feefd9ee",
+      "label": "fb55982b...",
+      "tipo": "producto",
+      "categoria": "papelaria",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 84
+    },
+    {
+      "id": "e2c3ed9aaddfd2312a6a5fe9b3ddadd3",
+      "label": "e2c3ed9a...",
+      "tipo": "producto",
+      "categoria": "brinquedos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 24
+    },
+    {
+      "id": "b596e2d70dd2f5fb5ff9ee2a1c803e5b",
+      "label": "b596e2d7...",
+      "tipo": "producto",
+      "categoria": "esporte_lazer",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 13
+    },
+    {
+      "id": "46dc3b2cc0980fb8ec44634e21d2718e",
+      "label": "46dc3b2c...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "RJ",
+      "ciudad": "rio de janeiro",
+      "grado": 4,
+      "grado_ponderado": 93
+    },
+    {
+      "id": "ea8482cd71df3c1969d7b9473ff13abc",
+      "label": "ea8482cd...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "sao paulo",
+      "grado": 4,
+      "grado_ponderado": 203
+    },
+    {
+      "id": "b30d7b0adcdc4a117f455472548155ec",
+      "label": "b30d7b0a...",
+      "tipo": "producto",
+      "categoria": "eletrodomesticos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 15
+    },
+    {
+      "id": "7c67e1448b00f6e969d365cea6b010ab",
+      "label": "7c67e144...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "itaquaquecetuba",
+      "grado": 4,
+      "grado_ponderado": 242
+    },
+    {
+      "id": "3eef0cb94ba82de806bb30ab743c7655",
+      "label": "3eef0cb9...",
+      "tipo": "producto",
+      "categoria": "moveis_escritorio",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 58
+    },
+    {
+      "id": "ab5da1daa941470d14366f4e76a99dd2",
+      "label": "ab5da1da...",
+      "tipo": "producto",
+      "categoria": "eletrodomesticos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 10
+    },
+    {
+      "id": "a92930c327948861c015c919a0bcb4a8",
+      "label": "a92930c3...",
+      "tipo": "producto",
+      "categoria": "relogios_presentes",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 156
+    },
+    {
+      "id": "3ae28b124972bb81eddcb644cd284be9",
+      "label": "3ae28b12...",
+      "tipo": "producto",
+      "categoria": "brinquedos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 18
+    },
+    {
+      "id": "35afc973633aaeb6b877ff57b2793310",
+      "label": "35afc973...",
+      "tipo": "producto",
+      "categoria": "casa_conforto",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 161
+    },
+    {
+      "id": "f7fce9a4e86a0d19818cc145ef87f8ca",
+      "label": "f7fce9a4...",
+      "tipo": "producto",
+      "categoria": "fashion_bolsas_e_acessorios",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 5
+    },
+    {
+      "id": "6560211a19b47992c3666cc44a7e94c0",
+      "label": "6560211a...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "sao paulo",
+      "grado": 4,
+      "grado_ponderado": 440
+    },
+    {
+      "id": "d97cfa719a6198d4a66453e0c6ed596c",
+      "label": "d97cfa71...",
+      "tipo": "producto",
+      "categoria": "fashion_bolsas_e_acessorios",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 12
+    },
+    {
+      "id": "e0cf79767c5b016251fe139915c59a26",
+      "label": "e0cf7976...",
+      "tipo": "producto",
+      "categoria": "beleza_saude",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 137
+    },
+    {
+      "id": "37470d84427730445b3b251bb796d528",
+      "label": "37470d84...",
+      "tipo": "producto",
+      "categoria": "eletrodomesticos",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 8
+    },
+    {
+      "id": "ca92f5c2276bfd491db575cd9de5a70d",
+      "label": "ca92f5c2...",
+      "tipo": "producto",
+      "categoria": "fashion_calcados",
+      "estado": "",
+      "ciudad": "",
+      "grado": 1,
+      "grado_ponderado": 5
+    },
+    {
+      "id": "cca3071e3e9bb7d12640c9fbe2301306",
+      "label": "cca3071e...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "ibitinga",
+      "grado": 4,
+      "grado_ponderado": 164
+    },
+    {
+      "id": "e5a3438891c0bfdb9394643f95273d8e",
+      "label": "e5a34388...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "limeira",
+      "grado": 4,
+      "grado_ponderado": 28
+    },
+    {
+      "id": "3d871de0142ce09b7081e2b9d1733cb1",
+      "label": "3d871de0...",
+      "tipo": "vendedor",
+      "categoria": "",
+      "estado": "SP",
+      "ciudad": "campo limpo paulista",
+      "grado": 4,
+      "grado_ponderado": 247
+    }
+  ],
+  "links": [
+    {
+      "source": "2136c70bbe723d338fab53da3c03e6dc",
+      "target": "6560211a19b47992c3666cc44a7e94c0",
+      "weight": 87,
+      "monto": 2523.0
+    },
+    {
+      "source": "84f456958365164420cfc80fbe4c7fab",
+      "target": "4a3ca9315b744ce9f8e9374361493884",
+      "weight": 106,
+      "monto": 9854.16
+    },
+    {
+      "source": "e6609e94d7b022fd6abf6142401618f9",
+      "target": "e5a3438891c0bfdb9394643f95273d8e",
+      "weight": 6,
+      "monto": 225.69
+    },
+    {
+      "source": "c857b96593773e940454e76efa8eabb3",
+      "target": "cca3071e3e9bb7d12640c9fbe2301306",
+      "weight": 53,
+      "monto": 2858.12
+    },
+    {
+      "source": "fc1d8637c0268af3db482c14b7ef8e75",
+      "target": "da8622b14eb17ae2831f4ac5b9dab84a",
+      "weight": 57,
+      "monto": 8504.3
+    },
+    {
+      "source": "177d3d5bb9d4d29222a222e3b3554f41",
+      "target": "3d871de0142ce09b7081e2b9d1733cb1",
+      "weight": 39,
+      "monto": 4477.8
+    },
+    {
+      "source": "1095122297a4faeebb3dd2cb4c9b497d",
+      "target": "7142540dd4c91e2237acb7e911c4eba2",
+      "weight": 4,
+      "monto": 269.6
+    },
+    {
+      "source": "99a4788cb24856965c36a24e339b6058",
+      "target": "4a3ca9315b744ce9f8e9374361493884",
+      "weight": 471,
+      "monto": 41542.5
+    },
+    {
+      "source": "c3ba4e8d3cb30049213b682e751e9d00",
+      "target": "6560211a19b47992c3666cc44a7e94c0",
+      "weight": 58,
+      "monto": 5506.0
+    },
+    {
+      "source": "19fdf478915162331ece9adfd669b88e",
+      "target": "7142540dd4c91e2237acb7e911c4eba2",
+      "weight": 4,
+      "monto": 300.36
+    },
+    {
+      "source": "9a442e31dcb07042eca00d73c1933880",
+      "target": "e5a3438891c0bfdb9394643f95273d8e",
+      "weight": 5,
+      "monto": 136.5
+    },
+    {
+      "source": "8ed094bfe076c568f6bb10feada3f75d",
+      "target": "7c67e1448b00f6e969d365cea6b010ab",
+      "weight": 68,
+      "monto": 12477.17
+    },
+    {
+      "source": "38c56c5c5b16958d95bf8254498ad555",
+      "target": "fa1c13f2614d7b5c4749cbc52fecda94",
+      "weight": 10,
+      "monto": 8040.0
+    },
+    {
+      "source": "07c055536ebf10dfbb6c6db6dbfc36e5",
+      "target": "cca3071e3e9bb7d12640c9fbe2301306",
+      "weight": 29,
+      "monto": 1331.1
+    },
+    {
+      "source": "704ef63ad0ac345842ea734060a83db2",
+      "target": "da8622b14eb17ae2831f4ac5b9dab84a",
+      "weight": 45,
+      "monto": 3410.5
+    },
+    {
+      "source": "01f2d77d8a63937c77c7128ce4bd2ada",
+      "target": "7142540dd4c91e2237acb7e911c4eba2",
+      "weight": 4,
+      "monto": 339.6
+    },
+    {
+      "source": "dc404a1496a08f9f5540c8b5d4b92925",
+      "target": "46dc3b2cc0980fb8ec44634e21d2718e",
+      "weight": 38,
+      "monto": 11663.5
+    },
+    {
+      "source": "777d2e438a1b645f3aec9bd57e92672c",
+      "target": "4a3ca9315b744ce9f8e9374361493884",
+      "weight": 92,
+      "monto": 6428.0
+    },
+    {
+      "source": "a9516a079e37a9c9c36b9b78b10169e8",
+      "target": "7c67e1448b00f6e969d365cea6b010ab",
+      "weight": 59,
+      "monto": 7042.41
+    },
+    {
+      "source": "d285360f29ac7fd97640bf0baef03de0",
+      "target": "fa1c13f2614d7b5c4749cbc52fecda94",
+      "weight": 22,
+      "monto": 7673.6
+    },
+    {
+      "source": "5411e9269501a870cabf632f05655131",
+      "target": "3d871de0142ce09b7081e2b9d1733cb1",
+      "weight": 76,
+      "monto": 9024.0
+    },
+    {
+      "source": "386486367c1f9d4f587a8864ccb6902b",
+      "target": "cca3071e3e9bb7d12640c9fbe2301306",
+      "weight": 54,
+      "monto": 6018.35
+    },
+    {
+      "source": "50d77758742285ff49f340ebdf0df5a7",
+      "target": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "weight": 15,
+      "monto": 397.8
+    },
+    {
+      "source": "da8622b14eb17ae2831f4ac5b9dab84a",
+      "target": "bb42f37fc3d9130e4a4339d24a47dd7c",
+      "weight": 48,
+      "monto": 2155.2
+    },
+    {
+      "source": "da8622b14eb17ae2831f4ac5b9dab84a",
+      "target": "e0cf79767c5b016251fe139915c59a26",
+      "weight": 137,
+      "monto": 4096.3
+    },
+    {
+      "source": "aba86c093ccdbac75b09111d57e50004",
+      "target": "7c67e1448b00f6e969d365cea6b010ab",
+      "weight": 57,
+      "monto": 6819.2
+    },
+    {
+      "source": "7142540dd4c91e2237acb7e911c4eba2",
+      "target": "ca92f5c2276bfd491db575cd9de5a70d",
+      "weight": 5,
+      "monto": 426.42
+    },
+    {
+      "source": "4a3ca9315b744ce9f8e9374361493884",
+      "target": "35afc973633aaeb6b877ff57b2793310",
+      "weight": 161,
+      "monto": 14137.2
+    },
+    {
+      "source": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "target": "37470d84427730445b3b251bb796d528",
+      "weight": 8,
+      "monto": 455.0
+    },
+    {
+      "source": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "target": "ab5da1daa941470d14366f4e76a99dd2",
+      "weight": 10,
+      "monto": 260.0
+    },
+    {
+      "source": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "target": "b30d7b0adcdc4a117f455472548155ec",
+      "weight": 15,
+      "monto": 1776.39
+    },
+    {
+      "source": "ace5d86cf1ac63cdb76f49e5cd23d2f8",
+      "target": "cca3071e3e9bb7d12640c9fbe2301306",
+      "weight": 28,
+      "monto": 1415.0
+    },
+    {
+      "source": "2ff17002562478fb03cd44f09e7ca51a",
+      "target": "fa1c13f2614d7b5c4749cbc52fecda94",
+      "weight": 10,
+      "monto": 2281.0
+    },
+    {
+      "source": "c1f5307decb89342351bec53668cffd9",
+      "target": "ea8482cd71df3c1969d7b9473ff13abc",
+      "weight": 48,
+      "monto": 1434.52
+    },
+    {
+      "source": "d017a2151d543a9885604dc62a3d9dcc",
+      "target": "6560211a19b47992c3666cc44a7e94c0",
+      "weight": 139,
+      "monto": 6811.0
+    },
+    {
+      "source": "036734b5a58d5d4f46b0616ddc047ced",
+      "target": "ea8482cd71df3c1969d7b9473ff13abc",
+      "weight": 43,
+      "monto": 1536.57
+    },
+    {
+      "source": "dab2413ead0edda9967edbc9bda2a64e",
+      "target": "ea8482cd71df3c1969d7b9473ff13abc",
+      "weight": 44,
+      "monto": 1319.12
+    },
+    {
+      "source": "7fab1a1472fdd934397068931f63f3ca",
+      "target": "3d871de0142ce09b7081e2b9d1733cb1",
+      "weight": 48,
+      "monto": 3391.9
+    },
+    {
+      "source": "97017430754804328eb9597b7f85da03",
+      "target": "ea8482cd71df3c1969d7b9473ff13abc",
+      "weight": 68,
+      "monto": 1959.32
+    },
+    {
+      "source": "4df83a41105e00e0845b9d12b5fe601c",
+      "target": "fa1c13f2614d7b5c4749cbc52fecda94",
+      "weight": 10,
+      "monto": 8474.1
+    },
+    {
+      "source": "fb55982be901439613a95940feefd9ee",
+      "target": "3d871de0142ce09b7081e2b9d1733cb1",
+      "weight": 84,
+      "monto": 6786.0
+    },
+    {
+      "source": "e2c3ed9aaddfd2312a6a5fe9b3ddadd3",
+      "target": "46dc3b2cc0980fb8ec44634e21d2718e",
+      "weight": 24,
+      "monto": 2379.76
+    },
+    {
+      "source": "b596e2d70dd2f5fb5ff9ee2a1c803e5b",
+      "target": "46dc3b2cc0980fb8ec44634e21d2718e",
+      "weight": 13,
+      "monto": 3354.87
+    },
+    {
+      "source": "46dc3b2cc0980fb8ec44634e21d2718e",
+      "target": "3ae28b124972bb81eddcb644cd284be9",
+      "weight": 18,
+      "monto": 1794.82
+    },
+    {
+      "source": "7c67e1448b00f6e969d365cea6b010ab",
+      "target": "3eef0cb94ba82de806bb30ab743c7655",
+      "weight": 58,
+      "monto": 4659.42
+    },
+    {
+      "source": "a92930c327948861c015c919a0bcb4a8",
+      "target": "6560211a19b47992c3666cc44a7e94c0",
+      "weight": 156,
+      "monto": 12163.0
+    },
+    {
+      "source": "f7fce9a4e86a0d19818cc145ef87f8ca",
+      "target": "e5a3438891c0bfdb9394643f95273d8e",
+      "weight": 5,
+      "monto": 66.5
+    },
+    {
+      "source": "d97cfa719a6198d4a66453e0c6ed596c",
+      "target": "e5a3438891c0bfdb9394643f95273d8e",
+      "weight": 12,
+      "monto": 451.2
+    }
+  ]
+}

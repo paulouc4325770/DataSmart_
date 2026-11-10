@@ -1,0 +1,144 @@
+{
+  "ejecutado_en_utc": "2026-11-10T03:34:49.576479+00:00",
+  "python": "3.11.9",
+  "poblacion": "pedidos entregados con ítems",
+  "items_analizados": 110197,
+  "total_nodos": 35186,
+  "total_vendedores": 2970,
+  "total_productos": 32216,
+  "total_aristas": 33659,
+  "es_bipartito": true,
+  "componentes_conexas": 2320,
+  "tamano_componente_gigante": 9358,
+  "densidad": 5.44e-05,
+  "top_vendedores_pagerank": [
+    {
+      "nodo": "4a3ca9315b744ce9f8e9374361493884",
+      "tipo_nodo": "vendedor",
+      "etiqueta_corta": "4a3ca931...",
+      "grado": 394,
+      "grado_ponderado": 1949,
+      "pagerank": 0.0050806,
+      "componente_id": 3,
+      "estado": "SP",
+      "ciudad": "ibitinga",
+      "categoria": ""
+    },
+    {
+      "nodo": "cca3071e3e9bb7d12640c9fbe2301306",
+      "tipo_nodo": "vendedor",
+      "etiqueta_corta": "cca3071e...",
+      "grado": 318,
+      "grado_ponderado": 817,
+      "pagerank": 0.0040913,
+      "componente_id": 5,
+      "estado": "SP",
+      "ciudad": "ibitinga",
+      "categoria": ""
+    },
+    {
+      "nodo": "d91fb3b7d041e83b64a00a3edfb37e4f",
+      "tipo_nodo": "vendedor",
+      "etiqueta_corta": "d91fb3b7...",
+      "grado": 309,
+      "grado_ponderado": 525,
+      "pagerank": 0.0039689,
+      "componente_id": 6,
+      "estado": "SP",
+      "ciudad": "praia grande",
+      "categoria": ""
+    },
+    {
+      "nodo": "6560211a19b47992c3666cc44a7e94c0",
+      "tipo_nodo": "vendedor",
+      "etiqueta_corta": "6560211a...",
+      "grado": 254,
+      "grado_ponderado": 1996,
+      "pagerank": 0.0032653,
+      "componente_id": 9,
+      "estado": "SP",
+      "ciudad": "sao paulo",
+      "categoria": ""
+    },
+    {
+      "nodo": "7142540dd4c91e2237acb7e911c4eba2",
+      "tipo_nodo": "vendedor",
+      "etiqueta_corta": "7142540d...",
+      "grado": 265,
+      "grado_ponderado": 328,
+      "pagerank": 0.0032603,
+      "componente_id": 7,
+      "estado": "SP",
+      "ciudad": "penapolis",
+      "categoria": ""
+    }
+  ],
+  "top_productos_pagerank": [
+    {
+      "nodo": "99a4788cb24856965c36a24e339b6058",
+      "tipo_nodo": "producto",
+      "etiqueta_corta": "99a4788c...",
+      "grado": 2,
+      "grado_ponderado": 477,
+      "pagerank": 0.0011124,
+      "componente_id": 3,
+      "estado": "",
+      "ciudad": "",
+      "categoria": "cama_mesa_banho"
+    },
+    {
+      "nodo": "aca2eb7d00ea1a7b8ebd4e68314663af",
+      "tipo_nodo": "producto",
+      "etiqueta_corta": "aca2eb7d...",
+      "grado": 1,
+      "grado_ponderado": 520,
+      "pagerank": 0.0004326,
+      "componente_id": 1,
+      "estado": "",
+      "ciudad": "",
+      "categoria": "moveis_decoracao"
+    },
+    {
+      "nodo": "53b36df67ebb7c41585e8d54d6772e08",
+      "tipo_nodo": "producto",
+      "etiqueta_corta": "53b36df6...",
+      "grado": 3,
+      "grado_ponderado": 321,
+      "pagerank": 0.0004178,
+      "componente_id": 1,
+      "estado": "",
+      "ciudad": "",
+      "categoria": "relogios_presentes"
+    },
+    {
+      "nodo": "35afc973633aaeb6b877ff57b2793310",
+      "tipo_nodo": "producto",
+      "etiqueta_corta": "35afc973...",
+      "grado": 2,
+      "grado_ponderado": 162,
+      "pagerank": 0.0003818,
+      "componente_id": 3,
+      "estado": "",
+      "ciudad": "",
+      "categoria": "casa_conforto"
+    },
+    {
+      "nodo": "06edb72f1e0c64b14c5b79353f7abea3",
+      "tipo_nodo": "producto",
+      "etiqueta_corta": "06edb72f...",
+      "grado": 1,
+      "grado_ponderado": 140,
+      "pagerank": 0.0003491,
+      "componente_id": 23,
+      "estado": "",
+      "ciudad": "",
+      "categoria": "cama_mesa_banho"
+    }
+  ],
+  "subgrafo": {
+    "nodos": 60,
+    "aristas": 48,
+    "archivo_json": "grafo_subgrafo.json",
+    "archivo_png": "06_grafo_red_vendedor_producto.png"
+  }
+}
