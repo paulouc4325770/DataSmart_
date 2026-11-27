@@ -1,4 +1,6 @@
 {
+  "run_id": "97a9cd485b52f3b5f011fdf445dd95058033dccf4a415ee1cfc53827dfc81d7c",
+  "ejecutado_en_utc": "2026-11-27T20:38:52.477276+00:00",
   "fuente": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\processed\\items_procesados.csv",
   "sha256_entrada": "cff2bd4af6bf56493ce6641c809d0fe7fe27162bdfde48d1011667e86a3a03fe",
   "python": "3.12.10",
@@ -101,6 +103,8 @@
       "v:da8622b14eb17ae2831f4ac5b9dab84a"
     ],
     "semilla_layout": 42,
-    "criterio": "Top vendedores por grado ponderado; top productos por peso de su arista; subgrafo inducido."
+    "criterio": "Top vendedores por grado ponderado; top productos por peso de su arista; subgrafo inducido.",
+    "archivo_json": "grafo_subgrafo.json",
+    "run_id": "97a9cd485b52f3b5f011fdf445dd95058033dccf4a415ee1cfc53827dfc81d7c"
   }
 }

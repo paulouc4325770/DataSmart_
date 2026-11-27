@@ -1,0 +1,2 @@
+﻿run_id,event,status,model_version,fuente,metricas,drift
+2026-11-27T18:08:10.482447+00:00,monitoring_retroactivo,ok,ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb,data\raw\archive.zip,resultados\monitoring_metrics.csv,resultados\data_drift_report.csv

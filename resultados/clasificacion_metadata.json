@@ -1,0 +1,139 @@
+{
+  "tecnica": "Clasificación de sentimiento textual supervisada",
+  "objetivo": "Clase derivada de review_score; no es anotación humana independiente.",
+  "etiquetas": {
+    "1-2": "negativo",
+    "3": "neutral",
+    "4-5": "positivo"
+  },
+  "predictores": [
+    "review_comment_message (texto limpio)"
+  ],
+  "variables_excluidas": [
+    "review_score",
+    "review_id",
+    "order_id",
+    "fechas y estados post-evento"
+  ],
+  "particion": "Cronológica por review_creation_date; el tiempo se usa solo para separar, no como predictor.",
+  "fecha_corte_test": "2018-06-05",
+  "train_inicio": "2016-10-02",
+  "train_fin": "2018-06-04",
+  "test_inicio": "2018-06-05",
+  "test_fin": "2018-08-31",
+  "n_train": 32655,
+  "n_test": 8172,
+  "conteos_train": {
+    "negativo": 9024,
+    "neutral": 2865,
+    "positivo": 20766
+  },
+  "conteos_test": {
+    "negativo": 1858,
+    "neutral": 682,
+    "positivo": 5632
+  },
+  "vectorizador": {
+    "tipo": "TF-IDF",
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 2,
+    "max_features": 50000,
+    "strip_accents": "unicode"
+  },
+  "modelo": {
+    "tipo": "LogisticRegression",
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "solver": "lbfgs",
+    "random_state": 42
+  },
+  "poblacion": {
+    "resenas_entrada": 99224,
+    "resenas_con_texto_no_vacio": 40827,
+    "resenas_score_valido": 99224,
+    "resenas_fecha_valida": 99224,
+    "resenas_elegibles": 40827,
+    "resenas_excluidas": 58397,
+    "distribucion_etiquetas_score": {
+      "negativo": 10882,
+      "neutral": 3547,
+      "positivo": 26398
+    }
+  },
+  "metricas": {
+    "accuracy": 0.8054331864904553,
+    "precision_macro": 0.6494158697889477,
+    "recall_macro": 0.6926063044921067,
+    "f1_macro": 0.6619642274990799,
+    "roc_auc_ovr_macro": 0.8873464281060999,
+    "pr_auc_macro_ovr": 0.6732756288443794,
+    "matriz_confusion": [
+      [
+        1531,
+        275,
+        52
+      ],
+      [
+        266,
+        277,
+        139
+      ],
+      [
+        250,
+        608,
+        4774
+      ]
+    ],
+    "orden_clases_matriz": [
+      "negativo",
+      "neutral",
+      "positivo"
+    ],
+    "reporte_por_clase": {
+      "negativo": {
+        "precision": 0.747923790913532,
+        "recall": 0.8240043057050592,
+        "f1-score": 0.784122919334187,
+        "support": 1858.0
+      },
+      "neutral": {
+        "precision": 0.23879310344827587,
+        "recall": 0.40615835777126097,
+        "f1-score": 0.3007600434310532,
+        "support": 682.0
+      },
+      "positivo": {
+        "precision": 0.9615307150050353,
+        "recall": 0.84765625,
+        "f1-score": 0.9010097197319996,
+        "support": 5632.0
+      },
+      "accuracy": 0.8054331864904553,
+      "macro avg": {
+        "precision": 0.6494158697889477,
+        "recall": 0.6926063044921067,
+        "f1-score": 0.6619642274990799,
+        "support": 8172.0
+      },
+      "weighted avg": {
+        "precision": 0.8526481016859306,
+        "recall": 0.8054331864904553,
+        "f1-score": 0.82433987705256,
+        "support": 8172.0
+      }
+    }
+  },
+  "limitaciones": [
+    "La puntuación funciona como proxy de polaridad; no garantiza sentimiento semántico independiente.",
+    "Solo se modelan reseñas con comentario no vacío, score y fecha válidos.",
+    "La evaluación es retrospectiva y no estima satisfacción al momento del checkout."
+  ],
+  "ejecutado_en_utc": "2026-11-27T18:04:30.901037+00:00",
+  "archivo_origen": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\raw\\archive.zip",
+  "sha256_origen": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
+  "artefacto_modelo": "data\\processed\\modelos\\clasificador_resenas.joblib",
+  "sha256_modelo": "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb"
+}

@@ -183,7 +183,7 @@ function renderAppShell() {
             </li>
             <li>
               <button class="nav-btn" data-action="quick-lab" data-tab="logistics">
-                <span class="nav-btn-left"><span class="nav-icon">🚚</span><span>Logística & SHAP</span></span>
+                <span class="nav-btn-left"><span class="nav-icon">🚚</span><span>Regresión de entrega</span></span>
                 <span class="nav-pill">PN-07</span>
               </button>
             </li>

@@ -6,7 +6,7 @@
 import { formatInt, formatPct } from '../utils/formatters.js';
 
 export function renderDataDictionaryView(store, state) {
-  const { dictionary, tablesSummary } = store;
+  const { dictionary, tablesSummary, liveDictionaryConnected = false } = store;
   const { dictTableFilter, dictSearchQuery, dictOnlyNulls } = state;
 
   const tablesList = ['ALL', ...tablesSummary.map(t => t.table)];
@@ -86,6 +86,7 @@ export function renderDataDictionaryView(store, state) {
           <h3>
             📖 Diccionario de Datos y Perfilado de Columnas
             <span class="chip chip-emerald">${filteredCols.length} de ${dictionary.length} columnas</span>
+            <span class="chip ${liveDictionaryConnected ? 'chip-emerald' : 'chip-amber'}">${liveDictionaryConnected ? 'perfilado API' : 'respaldo local'}</span>
           </h3>
           <p>
             Comparativa entre <code>tipo_pandas</code> (inferido en <code>diccionario_perfilado.csv</code>) y

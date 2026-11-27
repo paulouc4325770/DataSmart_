@@ -1,0 +1,25 @@
+{
+  "modo": "retrospectivo_academico",
+  "tiempo_real": false,
+  "version_activa": "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb",
+  "versiones": [
+    {
+      "model_version": "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb",
+      "registrado_en_utc": "2026-11-27T18:08:10.482447+00:00",
+      "modelo": "logistic_regression_tfidf",
+      "artefacto": "data\\processed\\modelos\\clasificador_resenas.joblib",
+      "sha256_artefacto": "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb",
+      "sha256_datos": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
+      "n_train": 32655,
+      "n_test": 8172,
+      "particion": "cronologica_por_review_creation_date"
+    }
+  ],
+  "ultima_ejecucion_utc": "2026-11-27T18:08:10.482447+00:00",
+  "criterio_revision": "PSI < 0.1 referencia estable; 0.1–0.25 revisión; >= 0.25 evaluar reentrenamiento manual.",
+  "limitaciones": [
+    "El drift compara train y test históricos del mismo dataset; no monitorea datos entrantes.",
+    "PSI es un indicador de cambio de distribución, no evidencia por sí solo de degradación predictiva.",
+    "Las recomendaciones requieren revisión humana y validación del modelo candidato."
+  ]
+}

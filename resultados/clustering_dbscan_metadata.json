@@ -1,0 +1,45 @@
+{
+  "fuente": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\processed\\pedidos_procesados.csv",
+  "sha256_entrada": "c5b3758ec2e130e4604a794b6e803128ca7966213be38a056c2396962e64627d",
+  "ejecutado_en_utc": "2026-11-27T18:17:35.968502+00:00",
+  "algoritmo": "DBSCAN",
+  "parametros": {
+    "eps": 0.5,
+    "min_samples": 10,
+    "metric": "euclidean"
+  },
+  "poblacion_rfm": {
+    "pedidos_entrada": 99441,
+    "pedidos_entregados": 96478,
+    "pedidos_otros_estados_excluidos": 2963,
+    "compradores_entregados_antes_exclusiones": 93358,
+    "pedidos_entregados_sin_comprador": 0,
+    "pedidos_entregados_con_fecha_o_importe_invalido": 0,
+    "compradores_excluidos_por_historia_incompleta": 0,
+    "pedidos_excluidos_por_comprador_o_historia_incompleta": 0,
+    "pedidos_utilizados": 96478,
+    "compradores_utilizados": 93358,
+    "compra_minima": "2016-09-15 12:16:38",
+    "compra_maxima": "2018-08-29 15:00:37",
+    "fecha_referencia": "2018-08-30",
+    "monto_total_BRL": 13221498.11,
+    "compradores_recurrentes": 2801
+  },
+  "muestra": {
+    "algoritmo": "DBSCAN",
+    "eps": 0.5,
+    "min_samples": 10,
+    "metric": "euclidean",
+    "n_muestra": 10000,
+    "semilla_muestra": 42,
+    "metodo_muestra": "Muestra aleatoria fija sin reemplazo; etiquetas no extrapoladas.",
+    "n_clusters_sin_ruido": 3,
+    "n_ruido": 69,
+    "porcentaje_ruido": 0.69,
+    "n_muestra_sin_ruido": 9931,
+    "silhouette_sin_ruido": 0.4071467622384867,
+    "davies_bouldin_sin_ruido": 0.4750456982242112,
+    "estado": "evaluado"
+  },
+  "limitacion": "Solo se etiquetó la muestra fija; no se asignaron etiquetas al resto de compradores."
+}

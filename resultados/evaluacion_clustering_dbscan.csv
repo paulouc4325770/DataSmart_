@@ -1,0 +1,2 @@
+﻿algoritmo,eps,min_samples,metric,n_muestra,semilla_muestra,metodo_muestra,n_clusters_sin_ruido,n_ruido,porcentaje_ruido,n_muestra_sin_ruido,silhouette_sin_ruido,davies_bouldin_sin_ruido,estado
+DBSCAN,0.5,10,euclidean,10000,42,Muestra aleatoria fija sin reemplazo; etiquetas no extrapoladas.,3,69,0.69,9931,0.4071467622384867,0.4750456982242112,evaluado

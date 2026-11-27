@@ -1,0 +1,4 @@
+﻿variable,tipo_variable,psi,n_referencia,n_actual,estado,bins,criterio,run_id,model_version,comparacion
+longitud_caracteres,continua,0.0023877324265097755,32655,8172,estable_referencia_academica,10,Bordes de deciles calculados solo sobre train.,2026-11-27T18:08:10.482447+00:00,ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb,train_test_mismo_dataset_historico
+cantidad_tokens,continua,0.003026433964390039,32655,8172,estable_referencia_academica,10,Bordes de deciles calculados solo sobre train.,2026-11-27T18:08:10.482447+00:00,ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb,train_test_mismo_dataset_historico
+sentimiento_score_proxy,categorica,0.01405445411313608,32655,8172,estable_referencia_academica,3,Categorías observadas en train o test.,2026-11-27T18:08:10.482447+00:00,ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb,train_test_mismo_dataset_historico

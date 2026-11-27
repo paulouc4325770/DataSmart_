@@ -1,8 +1,8 @@
 {
   "archivo_origen": "archive.zip",
   "sha256_origen": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
-  "ejecutado_en_utc": "2026-11-08T04:40:23.419616+00:00",
-  "python": "3.13.5",
+  "ejecutado_en_utc": "2026-11-10T03:19:39.073168+00:00",
+  "python": "3.12.10",
   "pandas": "2.3.3",
   "tablas_origen": 9,
   "campos_origen": 52,

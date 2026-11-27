@@ -1,5 +1,5 @@
 /**
- * Pestaña PN-05: reglas de asociación reales (Apriori y FP-Growth).
+ * Pestaña PN-05: reglas reales comparadas con Apriori, FP-Growth y ECLAT.
  * Muestra solo lo calculado por `src/asociacion.py`; cada regla declara su población
  * de referencia y se puede rastrear hasta los pedidos que la sustentan.
  */
@@ -85,9 +85,10 @@ function renderPopulationBox(association, poblacion) {
   const chipTraza = verificacion.trazabilidadCompleta
     ? `<span class="chip chip-emerald">Trazabilidad verificada: ${verificadas}/${total} reglas</span>`
     : `<span class="chip chip-rose">Trazabilidad incompleta: ${esc((verificacion.reglasInconsistentes || []).join(', '))}</span>`;
+  const nombresAlgoritmos = poblacion.comparacion.map(c => c.algoritmo).join(', ') || 'Algoritmos';
   const chipAlgoritmos = poblacion.algoritmosCoinciden
-    ? '<span class="chip chip-emerald">Apriori y FP-Growth coinciden</span>'
-    : '<span class="chip chip-rose">Apriori y FP-Growth no coinciden</span>';
+    ? `<span class="chip chip-emerald">${esc(nombresAlgoritmos)} coinciden</span>`
+    : `<span class="chip chip-rose">${esc(nombresAlgoritmos)} no coinciden</span>`;
   return `
     <div style="padding:0.85rem 1.05rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-primary);">
       <div style="font-size:0.72rem; color:var(--text-secondary);">POBLACIÓN DE REFERENCIA</div>
@@ -162,7 +163,7 @@ function renderComparison(poblacion) {
       </div>
       <p style="font-size:0.74rem; color:var(--text-muted); margin-top:0.35rem;">
         Tiempo de minado de conjuntos frecuentes (mejor y mediana de ${formatInt(poblacion.comparacion[0].repeticiones)} repeticiones).
-        Con conjuntos de a lo sumo ${poblacion.parametros.max_len ?? 2} categorías, FP-Growth no tiene por qué ser más rápido que Apriori.
+         Comparación de tiempos para hasta ${poblacion.parametros.max_len ?? 2} categorías; el rendimiento depende de la población y configuración.
       </p>
     </div>`;
 }
@@ -223,7 +224,7 @@ export function renderAssociationTab(association, state) {
     <div style="display:flex; flex-direction:column; gap:1rem; margin-top:0.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
         <div>
-          <strong style="font-size:0.88rem;">Reglas de asociación entre categorías (Apriori y FP-Growth)</strong>
+          <strong style="font-size:0.88rem;">Reglas de asociación entre categorías (Apriori, FP-Growth y ECLAT)</strong>
           <p style="font-size:0.77rem; color:var(--text-secondary);">
             Resultados calculados por <code>src/asociacion.py</code> sobre pedidos reales de Olist. Cada fila declara su población de referencia.
           </p>

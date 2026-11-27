@@ -5,6 +5,7 @@ Requiere data/processed/pedidos_procesados.csv; no genera datos de demostración
 """
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import platform
@@ -15,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
-from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN, KMeans
 from sklearn.metrics import davies_bouldin_score, silhouette_score
 from sklearn.preprocessing import StandardScaler
 from threadpoolctl import threadpool_limits
@@ -140,6 +141,59 @@ def evaluar_modelos(escaladas, muestra=1800):
     return evaluacion, etiquetas[elegido], indices
 
 
+def evaluar_dbscan(clientes, escaladas, muestra=10000, eps=0.5, min_samples=10):
+    """DBSCAN descriptivo en muestra determinista para acotar memoria y tiempo.
+
+    No propaga las etiquetas del subconjunto al resto de clientes: sus métricas
+    y perfiles describen exclusivamente la muestra evaluada.
+    """
+    if muestra <= min_samples or min_samples < 2 or eps <= 0:
+        raise ValueError('DBSCAN requiere muestra > min_samples >= 2 y eps > 0.')
+    n = min(int(muestra), len(escaladas))
+    if n <= min_samples:
+        raise ValueError('No hay suficientes compradores para el muestreo DBSCAN.')
+    indices = np.sort(np.random.default_rng(42).choice(len(escaladas), size=n, replace=False))
+    modelo = DBSCAN(eps=eps, min_samples=min_samples, metric='euclidean', algorithm='auto', n_jobs=1)
+    etiquetas = modelo.fit_predict(escaladas[indices])
+    no_ruido = etiquetas != -1
+    clusters = sorted(set(etiquetas) - {-1})
+    n_no_ruido = int(no_ruido.sum())
+    silhouette = None
+    davies_bouldin = None
+    if len(clusters) > 1 and n_no_ruido > len(clusters):
+        silhouette = float(silhouette_score(escaladas[indices][no_ruido], etiquetas[no_ruido],
+                                            sample_size=min(3000, n_no_ruido), random_state=42))
+        davies_bouldin = float(davies_bouldin_score(escaladas[indices][no_ruido], etiquetas[no_ruido]))
+
+    muestra_clientes = clientes.iloc[indices].copy().reset_index(drop=True)
+    muestra_clientes['cluster'] = etiquetas
+    muestra_clientes['segmento'] = muestra_clientes['cluster'].map(
+        lambda c: 'Ruido (no asignado)' if c == -1 else f'DBSCAN {c}'
+    )
+    grupo = muestra_clientes.groupby('cluster', sort=True)
+    perfiles = grupo.agg(cantidad_clientes=('customer_unique_id', 'size'))
+    perfiles['porcentaje_muestra'] = perfiles['cantidad_clientes'] / n * 100
+    for variable in VARIABLES:
+        perfiles[f'{variable}_promedio'] = grupo[variable].mean()
+        perfiles[f'{variable}_mediana'] = grupo[variable].median()
+    perfiles['segmento'] = [
+        'Ruido (no asignado)' if int(cluster) == -1 else f'DBSCAN {int(cluster)}'
+        for cluster in perfiles.index
+    ]
+    perfiles = perfiles.reset_index()
+    evaluacion = {
+        'algoritmo': 'DBSCAN', 'eps': eps, 'min_samples': min_samples,
+        'metric': 'euclidean', 'n_muestra': n, 'semilla_muestra': 42,
+        'metodo_muestra': 'Muestra aleatoria fija sin reemplazo; etiquetas no extrapoladas.',
+        'n_clusters_sin_ruido': len(clusters), 'n_ruido': int((etiquetas == -1).sum()),
+        'porcentaje_ruido': float((etiquetas == -1).mean() * 100),
+        'n_muestra_sin_ruido': n_no_ruido,
+        'silhouette_sin_ruido': silhouette, 'davies_bouldin_sin_ruido': davies_bouldin,
+        'estado': 'evaluado' if len(clusters) > 1 else 'sin_particion_comparable',
+    }
+    return muestra_clientes, perfiles, evaluacion, indices
+
+
 def perfilar_clusters(clientes):
     grupo = clientes.groupby('cluster', sort=True)
     perfiles = grupo.agg(cantidad_clientes=('customer_unique_id', 'size'))
@@ -224,7 +278,7 @@ def publicar_resumen(salida, texto):
             ruta.write_text(antes + INICIO + '\n\n' + texto + '\n\n' + FIN + despues, encoding='utf-8')
 
 
-def ejecutar(pedidos_csv, salida, muestra=1800, fecha_referencia=None):
+def ejecutar(pedidos_csv, salida, muestra=1800, fecha_referencia=None, muestra_dbscan=10000):
     pedidos = leer_csv(pedidos_csv, COLUMNAS, 'pedidos_procesados.csv')
     clientes, poblacion = construir_rfm(pedidos, fecha_referencia)
     escaladas, distribuciones, transformadas, escalador = transformar_rfm(clientes)
@@ -238,10 +292,24 @@ def ejecutar(pedidos_csv, salida, muestra=1800, fecha_referencia=None):
     for nombre, tabla in [('clientes_clusters', clientes), ('perfiles_clusters', perfiles),
                           ('evaluacion_clustering', evaluacion), ('rfm_distribuciones', distribuciones)]:
         guardar_csv(tabla, resultados / f'{nombre}.csv')
+    clientes_dbscan, perfiles_dbscan, evaluacion_dbscan, _ = evaluar_dbscan(
+        clientes, escaladas, muestra=muestra_dbscan,
+    )
+    guardar_csv(clientes_dbscan, resultados / 'clientes_clusters_dbscan.csv')
+    guardar_csv(perfiles_dbscan, resultados / 'perfiles_clusters_dbscan.csv')
+    guardar_csv(pd.DataFrame([evaluacion_dbscan]), resultados / 'evaluacion_clustering_dbscan.csv')
+    (resultados / 'clustering_dbscan_metadata.json').write_text(json.dumps({
+        'fuente': str(pedidos_csv), 'sha256_entrada': sha256(pedidos_csv),
+        'ejecutado_en_utc': datetime.now(timezone.utc).isoformat(),
+        'algoritmo': 'DBSCAN', 'parametros': {'eps': .5, 'min_samples': 10, 'metric': 'euclidean'},
+        'muestra': evaluacion_dbscan,
+        'limitacion': 'DBSCAN se ajusta y evalúa solo sobre la muestra fija; no se asignan etiquetas al resto de compradores.',
+    }, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     graficar(clientes, perfiles, evaluacion, distribuciones, transformadas, resultados / 'graficos')
     mejor = evaluacion.loc[evaluacion['seleccionado']].iloc[0]
     metadata = {
         'fuente': str(pedidos_csv), 'sha256_entrada': sha256(pedidos_csv),
+        'ejecutado_en_utc': datetime.now(timezone.utc).isoformat(),
         'python': platform.python_version(), 'pandas': pd.__version__,
         'numpy': np.__version__, 'scikit_learn': sklearn.__version__,
         'matplotlib': matplotlib.__version__, 'poblacion': poblacion,
@@ -282,17 +350,51 @@ def ejecutar(pedidos_csv, salida, muestra=1800, fecha_referencia=None):
     return metadata
 
 
+def ejecutar_dbscan_solo(pedidos_csv, salida, muestra=10000, fecha_referencia=None):
+    """Genera solo los artefactos DBSCAN y preserva los CSV existentes de K-Means."""
+    pedidos = leer_csv(pedidos_csv, COLUMNAS, 'pedidos_procesados.csv')
+    clientes, poblacion = construir_rfm(pedidos, fecha_referencia)
+    escaladas, _, _, _ = transformar_rfm(clientes)
+    muestra_clientes, perfiles, evaluacion, _ = evaluar_dbscan(clientes, escaladas, muestra=muestra)
+    resultados = salida / 'resultados'
+    for nombre, tabla in [
+        ('clientes_clusters_dbscan', muestra_clientes),
+        ('perfiles_clusters_dbscan', perfiles),
+        ('evaluacion_clustering_dbscan', pd.DataFrame([evaluacion])),
+    ]:
+        guardar_csv(tabla, resultados / f'{nombre}.csv')
+    metadata = {
+        'fuente': str(pedidos_csv), 'sha256_entrada': sha256(pedidos_csv),
+        'ejecutado_en_utc': datetime.now(timezone.utc).isoformat(),
+        'algoritmo': 'DBSCAN', 'parametros': {'eps': .5, 'min_samples': 10, 'metric': 'euclidean'},
+        'poblacion_rfm': poblacion, 'muestra': evaluacion,
+        'limitacion': 'Solo se etiquetó la muestra fija; no se asignaron etiquetas al resto de compradores.',
+    }
+    (resultados / 'clustering_dbscan_metadata.json').write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + '\n', encoding='utf-8',
+    )
+    print(f"DBSCAN muestral: {evaluacion['n_clusters_sin_ruido']} clusters; ruido={evaluacion['porcentaje_ruido']:.2f}%; N={evaluacion['n_muestra']}.")
+    return metadata
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pedidos', type=Path, default=ROOT / 'data/processed/pedidos_procesados.csv')
     parser.add_argument('--output-root', type=Path, default=ROOT)
     parser.add_argument('--fecha-referencia', help='Fecha ISO posterior a la última compra; por defecto día siguiente al máximo.')
     parser.add_argument('--muestra-silhouette', type=int, default=1800, help='Muestra fija entre 100 y 2000 compradores (máximo).')
+    parser.add_argument('--muestra-dbscan', type=int, default=10000, help='Muestra fija de compradores para DBSCAN (100–20000).')
+    parser.add_argument('--solo-dbscan', action='store_true', help='Genera DBSCAN muestral sin modificar salidas de K-Means.')
     args = parser.parse_args()
     if not 100 <= args.muestra_silhouette <= 2000:
         parser.error('--muestra-silhouette debe estar entre 100 y 2000.')
+    if not 100 <= args.muestra_dbscan <= 20000:
+        parser.error('--muestra-dbscan debe estar entre 100 y 20000.')
     try:
-        ejecutar(args.pedidos.resolve(), args.output_root.resolve(), args.muestra_silhouette, args.fecha_referencia)
+        if args.solo_dbscan:
+            ejecutar_dbscan_solo(args.pedidos.resolve(), args.output_root.resolve(), args.muestra_dbscan, args.fecha_referencia)
+        else:
+            ejecutar(args.pedidos.resolve(), args.output_root.resolve(), args.muestra_silhouette, args.fecha_referencia, args.muestra_dbscan)
     except (OSError, ValueError) as error:
         parser.exit(1, f'Error de clustering: {error}\n')
 

@@ -1,0 +1,18 @@
+{
+  "tecnica": "Explicabilidad lineal de LogisticRegression TF-IDF",
+  "modelo": "data\\processed\\modelos\\clasificador_resenas.joblib",
+  "sha256_modelo": "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb",
+  "sha256_entrada": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
+  "metodo_global": "Magnitud y signo de coeficientes TF-IDF por clase.",
+  "metodo_local": "Contribución exacta TF-IDF * coeficiente al logit de la clase predicha.",
+  "predicciones_test_disponibles": 8172,
+  "predicciones_explicadas": 50,
+  "terminos_globales_por_clase": 30,
+  "terminos_locales_por_direccion": 5,
+  "ejecutado_en_utc": "2026-11-27T18:04:45.476611+00:00",
+  "limitaciones": [
+    "No se calcula SHAP; la explicación local está en escala de logit, no en puntos de probabilidad.",
+    "Coeficientes reflejan asociación del modelo y no causalidad.",
+    "El target corresponde a categorías derivadas de review_score, no a anotaciones humanas independientes."
+  ]
+}

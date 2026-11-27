@@ -57,7 +57,7 @@ El problema se formula así: **identificar y cuantificar, con reglas de asociaci
 
 - Unidad de análisis: el **pedido** (`order_id`), tratado como una cesta de categorías distintas.
 - Nivel de análisis inicial: **categoría de producto**, no producto individual. Con 32.951 productos y cestas casi siempre unitarias, el nivel de producto produciría soportes insignificantes.
-- Algoritmos: Apriori y FP-Growth con los mismos parámetros, comparados en reglas obtenidas y tiempo de ejecución.
+- Algoritmos: Apriori, FP-Growth y ECLAT con las mismas cestas y parámetros, comparados en itemsets, reglas y tiempo de ejecución.
 - Métricas por regla: soporte, confianza, lift y número de pedidos.
 - Integración de los resultados calculados en la plataforma web, diferenciándolos de simulaciones o módulos pendientes.
 
@@ -86,7 +86,7 @@ El problema se formula así: **identificar y cuantificar, con reglas de asociaci
 
 ### 3.1 Objetivo general
 
-Generar evidencia cuantificada y trazable sobre la co-compra de categorías en los pedidos de Olist mediante reglas de asociación (Apriori y FP-Growth), y presentarla en la plataforma DataSmart con resultados reales, con su población de referencia explícita y distinguidos de simulaciones o módulos pendientes.
+Generar evidencia cuantificada y trazable sobre la co-compra de categorías en los pedidos de Olist mediante Apriori, FP-Growth y ECLAT, y presentarla en la plataforma DataSmart con población de referencia explícita.
 
 ### 3.2 Objetivos específicos
 
@@ -94,7 +94,7 @@ Generar evidencia cuantificada y trazable sobre la co-compra de categorías en l
 |---|---|---|---|
 | OE1 | Formalizar el problema, los objetivos y las preguntas de negocio reutilizando el trabajo existente (informe de la semana 7 y las preguntas PN-01 a PN-10). | Este documento, `docs/negocio_y_asociacion.md` | Cada pregunta enlaza con datos, técnica y resultado esperado (sección 4). |
 | OE2 | Construir una cesta por `order_id` con categorías distintas y caracterizar la población: pedidos vacíos, unitarios y multicategoría. | `src/asociacion.py` | Los tres conteos suman el universo declarado. |
-| OE3 | Ejecutar Apriori y FP-Growth con los mismos parámetros. | `resultados/comparacion_asociacion.csv` | Reglas obtenidas por cada algoritmo, coincidencia entre ambos y tiempo de ejecución. |
+| OE3 | Ejecutar Apriori, FP-Growth y ECLAT con los mismos parámetros. | `resultados/comparacion_asociacion.csv` | Itemsets, reglas, coincidencia con Apriori y tiempo de cada algoritmo. |
 | OE4 | Exportar soporte, confianza, lift y número de pedidos por regla. | `resultados/reglas_asociacion.csv` | `n_pedidos` = soporte × total de cestas del universo. |
 | OE5 | Justificar los umbrales según la baja cantidad de cestas multicategoría. | Sección 6 de este documento | Los umbrales se expresan también como número mínimo de pedidos. |
 | OE6 | Conectar la web con los resultados calculados y actualizar los estados de avance. | Cambios en `frontend/server.py`, `dataService.js` y las vistas | Los valores de la web coinciden con los CSV. |
@@ -111,20 +111,20 @@ Cada regla mostrada puede rastrearse hasta las cestas originales y declara su **
 
 ### 4.1 Las 10 preguntas del proyecto
 
-La tabla relaciona cada pregunta con los datos, la técnica y el resultado esperado. La columna «Estado real» corrige las etiquetas de la interfaz actual, que presenta como «activo» varios módulos cuyos resultados aún son de demostración.
+La tabla relaciona cada pregunta con los datos, la técnica y el estado de los artefactos disponibles. Las métricas se consideran resultados solo cuando se cargan desde sus archivos de ejecución.
 
 | ID | Pregunta | Datos | Técnica | Resultado esperado | Responsable | Estado real |
 |---|---|---|---|---|---|---|
-| PN-01 | ¿Qué grupos de clientes presentan perfiles de compra similares? | `items_procesados.csv` por `customer_unique_id` (recencia, frecuencia, monto) | RFM + K-Means | Segmentos con perfil y acción comercial | Brandon | Pendiente; la interfaz muestra segmentos de demostración |
+| PN-01 | ¿Qué grupos de clientes presentan perfiles de compra similares? | Pedidos entregados por `customer_unique_id` | RFM + K-Means y DBSCAN muestral | Perfiles y métricas, con límites de muestra explícitos | Brandon | Implementado; DBSCAN solo etiqueta muestra |
 | PN-02 | ¿Qué compradores concentran los mayores importes? | `valor_articulos` por comprador | Scoring RFM y curva de Pareto | Concentración del monto (cuantiles) | Brandon | Pendiente |
 | PN-03 | ¿Cómo cambian las ventas por mes? | `resultados/ventas_mensuales.csv` | EDA temporal | Evolución mensual y pico de noviembre de 2017 | Equipo (EDA) | Completado en EDA |
-| PN-04 | ¿Es posible pronosticar ventas futuras? | Ventas de entregados por fecha de compra | Series temporales (base vs. suavizamiento exponencial) | Pronóstico con MAE y RMSE sobre periodos de prueba | Anderson | Pendiente |
-| **PN-05** | **¿Qué productos aparecen juntos en los pedidos?** | `items_procesados.csv`: `order_id`, `categoria_presentacion` | **Apriori y FP-Growth** | **Reglas con soporte, confianza, lift y n.º de pedidos** | **Paulo** | **En desarrollo (esta entrega)** |
+| PN-04 | ¿Es posible pronosticar ventas futuras? | Ventas entregadas por fecha de compra | Baseline, SES y Holt con evaluación cronológica | Pronósticos y MAE/RMSE del periodo test | Anderson | Implementado; test hasta agosto de 2018 |
+| **PN-05** | **¿Qué productos aparecen juntos en los pedidos?** | `items_procesados.csv`: `order_id`, `categoria_presentacion` | **Apriori, FP-Growth y ECLAT** | **Reglas trazables, comparación, soporte, confianza y lift** | **Paulo** | **Implementado; coincidencia verificada en ambas poblaciones** |
 | PN-06 | ¿Qué categorías generan mayores importes? | Precio por categoría en pedidos entregados | Agregación y Pareto | Ranking de categorías por ventas | Equipo (EDA) | Completado en EDA |
-| PN-07 | ¿Qué variables se asocian con los tiempos de entrega? | `dias_entrega`, distancia, peso, volumen, flete | Regresión (base, Ridge, Random Forest) | MAE, RMSE y R² con corte temporal | Anderson | Pendiente |
-| PN-08 | ¿Qué factores permiten clasificar valoraciones? | Reseñas y puntuaciones | Clasificación | Precision, recall, F1 | Sin asignar en `tareas_equipo.md` | Pendiente |
-| PN-09 | ¿Qué conexiones forman clientes, productos y vendedores? | Aristas vendedor–producto desde ítems | Grafos (grado, PageRank, componentes) | Red calculada con métricas | Brandon | Pendiente; el grafo de la interfaz es predefinido |
-| PN-10 | ¿Qué temas aparecen en los comentarios? | 40.977 reseñas con texto | Minería de textos | Temas y términos frecuentes | Sin asignar en `tareas_equipo.md` | Pendiente |
+| PN-07 | ¿Qué variables se asocian con los tiempos de entrega? | `dias_entrega`, distancia, peso, volumen, flete | Regresión (base, Ridge, Random Forest) | MAE, RMSE y R² con corte temporal | Anderson | Implementado |
+| PN-08 | ¿Qué factores permiten clasificar valoraciones? | Comentario; etiqueta proxy desde `review_score` | TF-IDF + Logistic Regression, split cronológico | Accuracy, precision/recall/F1 macro, ROC-AUC y PR-AUC | Sin asignar en `tareas_equipo.md` | Implementado; mide concordancia con score proxy |
+| PN-09 | ¿Qué conexiones forman clientes, productos y vendedores? | Aristas vendedor–producto desde ítems | Grafo bipartito (grado, PageRank, componentes) | Red completa y subgrafo real acotado | Brandon | Implementado |
+| PN-10 | ¿Qué temas aparecen en los comentarios? | 40.827 comentarios no vacíos tras limpieza | TF-IDF, coocurrencias, idioma heurístico y léxico | Términos y polaridad léxica descriptiva | Sin asignar en `tareas_equipo.md` | Implementado; no se ajusta topic model |
 
 **Puntos a resolver con el equipo:**
 
@@ -236,16 +236,17 @@ Razones para elegir 10 pedidos:
 
 El valor de 10 es un mínimo razonable de evidencia para reportar una frecuencia, no un umbral de significancia estadística; por eso en 6.5 se evalúa además si el exceso observado es compatible con el azar.
 
-### 6.4 Comparación Apriori y FP-Growth
+### 6.4 Comparación Apriori, FP-Growth y ECLAT
 
 Resultados con el umbral provisional de 10 pedidos (soporte 0,000105), confianza mínima 0 y conjuntos de hasta 2 categorías, sobre el universo de 95.146 cestas. Tiempos: mejor de 5 repeticiones, solo minado de conjuntos frecuentes.
 
-| Algoritmo | Conjuntos frecuentes | Reglas obtenidas | Tiempo mínimo (s) | Coincide con el otro |
+| Algoritmo | Conjuntos frecuentes | Reglas obtenidas | Tiempo mínimo (s) | Coincide con Apriori |
 |---|---:|---:|---:|---|
-| Apriori | 87 | 34 | 0,0625 | Sí |
-| FP-Growth | 87 | 34 | 0,1439 | Sí |
+| Apriori | 87 | 34 | 0,1113 | Sí |
+| FP-Growth | 87 | 34 | 0,1804 | Sí |
+| ECLAT | 87 | 34 | 0,0815 | Sí |
 
-Ambos algoritmos obtienen exactamente los mismos conjuntos y las mismas 34 reglas con métricas idénticas. FP-Growth resultó más lento que Apriori. Esto es esperable aquí: con conjuntos de a lo sumo 2 categorías, solo 70 categorías frecuentes y casi todas las cestas de un único ítem, Apriori no necesita más de dos pasadas y el costo de construir el árbol FP no se compensa. La ventaja de FP-Growth aparece con más ítems, cestas más largas o umbrales mucho menores. Estos tiempos corresponden a implementaciones propias en Python y no deben generalizarse a otras librerías.
+Los tres algoritmos obtienen los mismos 87 itemsets y 34 reglas, con métricas idénticas. ECLAT fue el más rápido en esta ejecución; los tiempos son mediciones de implementaciones propias en Python, dependientes de la máquina y configuración, y no se generalizan a otras librerías.
 
 ### 6.5 Reglas principales e interpretación
 
@@ -294,7 +295,7 @@ python src/asociacion.py --poblacion multicategoria
 | Población de referencia | 95.146 cestas (unitarias y multicategoría) | 723 cestas (solo multicategoría) |
 | Umbral | 10 pedidos (soporte 0,000105) | 10 pedidos (soporte 10/723 = 1,38 %) |
 | Archivos | `reglas_asociacion.csv` y demás | los mismos nombres con sufijo `_multicategoria` |
-| Algoritmos | Apriori y FP-Growth coinciden (0,0625 s y 0,1439 s) | Apriori y FP-Growth coinciden (0,0013 s y 0,0016 s) |
+| Algoritmos | Los tres coinciden (medianas: 0,1127 / 0,2309 / 0,0859 s) | Los tres coinciden (medianas: 0,0014 / 0,0018 / 0,0006 s) |
 
 El número de pedidos por par es el mismo en ambos análisis; cambian el denominador y las frecuencias individuales de cada categoría, y por eso cambian el soporte, la confianza, el lift y el `p_valor`.
 
@@ -347,7 +348,7 @@ La pestaña **Asociación** del frontend (módulo Preguntas de negocio) lee los 
 - Cada regla muestra su población de referencia (N), soporte, confianza, lift, `p_valor` y número de pedidos, con selector entre el análisis principal (N = 95.146) y el complementario (N = 723).
 - Al seleccionar una regla se muestran los pedidos que la sustentan; la web verifica que los pedidos rastreados coincidan con `n_pedidos` (34 de 34 reglas en ambas poblaciones).
 - Los indicadores de recompra (3,12 %) y entregas tardías (6,77 %) se toman de los archivos de calidad, y el diccionario se rotula con 52 campos.
-- Los laboratorios aún sin resultados reales (RFM, series, SHAP, NLP, grafos) figuran como «Simulación con datos de ejemplo» hasta integrar los resultados de cada integrante.
+- El dashboard carga artefactos reales de los módulos ejecutados. DBSCAN es muestral; sentimiento léxico y etiquetas de score son fuentes distintas; el monitoreo es retrospectivo. La explicabilidad implementada usa coeficientes/logits, no SHAP.
 
 ---
 

@@ -1,0 +1,2 @@
+﻿modelo,accuracy,precision_macro,recall_macro,f1_macro,roc_auc_ovr_macro,pr_auc_macro_ovr,n_train,n_test,fecha_corte_test,matriz_confusion_json
+logistic_regression_tfidf,0.8054331864904553,0.6494158697889477,0.6926063044921067,0.6619642274990799,0.8873464281060999,0.6732756288443794,32655,8172,2018-06-05,"[[1531, 275, 52], [266, 277, 139], [250, 608, 4774]]"
