@@ -256,7 +256,7 @@ function adaptarVentasMensuales(filas) {
       year: fecha.getUTCFullYear(),
       salesBRL: Number(fila.ventas_articulos_BRL ?? fila.ventas ?? 0),
       isExtreme: fecha < new Date('2017-01-01T00:00:00Z') || fecha >= new Date('2018-09-01T00:00:00Z'),
-      note: 'Ventas históricas calculadas desde pedidos entregados',
+      note: 'Ventas de pedidos entregados',
     };
   }).filter(Boolean);
 }
@@ -299,7 +299,7 @@ export function aplicarKpisEnVivo(kpis, payload) {
       k.formatted = `${formatoEs(k.value, 2)} %`;
       k.unit = `${formatoEs(prep.entregas_tardias_calendario)} tardíos`;
       if (Number.isFinite(prep.pedidos_entregados) && Number.isFinite(prep.entregados_sin_fecha)) {
-        k.definition = `${formatoEs(prep.entregas_tardias_calendario)} entregas tardías (por día calendario) sobre ${formatoEs(
+        k.definition = `${formatoEs(prep.entregas_tardias_calendario)} tardíos sobre ${formatoEs(
           prep.pedidos_entregados - prep.entregados_sin_fecha
         )} entregados con ambas fechas`;
       }
@@ -405,7 +405,7 @@ export function aplicarCalidadEnVivo(tablesSummary, qualityIssues, payload) {
         nullCount: affected,
         pctRows,
         severity,
-        treatment: group.tratamiento || base?.treatment || 'Revisar la incidencia con la metodología del módulo.',
+        treatment: group.tratamiento || base?.treatment || 'Revisar la incidencia.',
       };
     });
     issues = [...issues, ...extras];

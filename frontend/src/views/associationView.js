@@ -1,7 +1,5 @@
 /**
- * Pestaña PN-05: reglas reales comparadas con Apriori, FP-Growth y ECLAT.
- * Muestra solo lo calculado por `src/asociacion.py`; cada regla declara su población
- * de referencia y se puede rastrear hasta los pedidos que la sustentan.
+ * Reglas de asociación comparadas con Apriori, FP-Growth y ECLAT.
  */
 
 import { formatInt } from '../utils/formatters.js';
@@ -91,14 +89,12 @@ function renderPopulationBox(association, poblacion) {
     : `<span class="chip chip-rose">${esc(nombresAlgoritmos)} no coinciden</span>`;
   return `
     <div style="padding:0.85rem 1.05rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-primary);">
-      <div style="font-size:0.72rem; color:var(--text-secondary);">POBLACIÓN DE REFERENCIA</div>
-      <div style="font-size:0.84rem; margin:0.15rem 0 0.45rem;"><strong>${esc(poblacion.poblacionReferencia)}</strong></div>
+      <div style="font-size:0.84rem; margin-bottom:0.45rem;"><strong>${esc(poblacion.poblacionReferencia)}</strong></div>
       <div style="font-size:0.77rem; color:var(--text-secondary);">
-        Umbral: al menos <span class="mono">${formatInt(p.min_pedidos)}</span> pedidos
-        (soporte <span class="mono">${p.min_soporte !== undefined ? (p.min_soporte * 100).toFixed(4) : '—'}%</span>) ·
-        confianza mínima <span class="mono">${p.min_confianza ?? '—'}</span> ·
-        longitud máxima <span class="mono">${p.max_len ?? '—'}</span> categorías ·
-        ${formatInt(poblacion.paresObservados)} pares observados.
+        Mín. pedidos <span class="mono">${formatInt(p.min_pedidos)}</span> ·
+        confianza <span class="mono">${p.min_confianza ?? '—'}</span> ·
+        máx. categorías <span class="mono">${p.max_len ?? '—'}</span> ·
+        ${formatInt(poblacion.paresObservados)} pares
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.5rem;">${chipTraza}${chipAlgoritmos}</div>
     </div>`;
@@ -115,12 +111,8 @@ function renderRuleDetail(poblacion, regla) {
     <div style="padding:0.95rem 1.1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--accent-primary);">
       <strong>${esc(regla.id)}: ${esc(ant)} → ${esc(cons)}</strong>
       <p style="font-size:0.8rem; color:var(--text-secondary); margin:0.45rem 0;">
-        Entre los <strong>${formatInt(regla.totalCestas)}</strong> pedidos de la población de referencia,
-        <strong>${formatInt(regla.nPedidosAntecedente)}</strong> incluyen «${esc(ant)}». De ellos,
-        <strong>${formatInt(regla.nPedidos)}</strong> incluyen también «${esc(cons)}» (confianza ${pct(regla.confianza, 1)}).
-        «${esc(cons)}» aparece en ${pct(regla.soporteConsecuente, 2)} de los pedidos de la población (lift ${regla.lift.toFixed(2)}x).
-        Probabilidad de observar al menos ${formatInt(regla.nPedidos)} pedidos por azar, bajo independencia:
-        <span class="mono">p = ${formatPValue(regla.pValor)}</span>.
+        ${formatInt(regla.nPedidosAntecedente)} pedidos con «${esc(ant)}» · ${formatInt(regla.nPedidos)} con «${esc(cons)}» ·
+        confianza ${pct(regla.confianza, 1)} · lift ${regla.lift.toFixed(2)}x · p = ${formatPValue(regla.pValor)}
       </p>
       <div style="font-size:0.78rem;">
         <strong>Pedidos que sustentan la regla:</strong>
@@ -136,7 +128,7 @@ function renderComparison(poblacion) {
   if (!poblacion.comparacion.length) return '';
   return `
     <div>
-      <strong style="font-size:0.84rem;">Comparación de algoritmos (mismos parámetros y mismas cestas)</strong>
+      <strong style="font-size:0.84rem;">Comparación de algoritmos</strong>
       <div class="table-wrap" style="margin-top:0.45rem;">
         <table class="data-table">
           <thead><tr>
@@ -161,10 +153,6 @@ function renderComparison(poblacion) {
           </tbody>
         </table>
       </div>
-      <p style="font-size:0.74rem; color:var(--text-muted); margin-top:0.35rem;">
-        Tiempo de minado de conjuntos frecuentes (mejor y mediana de ${formatInt(poblacion.comparacion[0].repeticiones)} repeticiones).
-         Comparación de tiempos para hasta ${poblacion.parametros.max_len ?? 2} categorías; el rendimiento depende de la población y configuración.
-      </p>
     </div>`;
 }
 
@@ -172,7 +160,7 @@ function renderThresholds(poblacion) {
   if (!poblacion.umbrales.length) return '';
   return `
     <div>
-      <strong style="font-size:0.84rem;">Justificación del umbral (pares de categorías según pedidos mínimos)</strong>
+      <strong style="font-size:0.84rem;">Umbrales evaluados</strong>
       <div class="table-wrap" style="margin-top:0.45rem;">
         <table class="data-table">
           <thead><tr><th>Umbral (pedidos)</th><th>Soporte equivalente</th><th>Pares frecuentes</th><th>Pares con lift &gt; 1</th></tr></thead>
@@ -194,18 +182,12 @@ function renderThresholds(poblacion) {
     </div>`;
 }
 
-function renderReading(association, clave, bonferroni) {
-  const multi = composicionDe(association, 'multicategoria_dos_o_mas');
-  const nota =
-    clave === 'multicategoria'
-      ? 'Todas las cestas de esta población tienen 2 o más categorías, por lo que las categorías no son independientes por construcción: los lift mayores que 1 y los p-valores pequeños son conclusiones conservadoras, y un lift menor que 1 no indica rechazo entre categorías.'
-      : `${multi ? `Solo el ${(multi.pctUniverso ?? 0).toFixed(2)}% de las cestas` : 'La mayoría de las cestas'} combina 2 o más categorías; el resto no puede contener ningún par. Por eso, medido sobre todas las cestas, casi cualquier par tiene lift menor que 1, lo cual no indica rechazo entre categorías.`;
+function renderReading(clave, bonferroni) {
+  const nota = clave === 'multicategoria'
+    ? 'Las cestas tienen al menos dos categorías por construcción; un lift menor que 1 no implica rechazo.'
+    : 'Muchas cestas son unitarias, por lo que un lift menor que 1 no implica rechazo.';
   return `
-    <div style="padding:0.8rem 1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-amber); font-size:0.78rem; color:var(--text-secondary);">
-      <strong>Cómo leer esta tabla.</strong> ${nota}
-      Con ${formatInt(bonferroni.conjuntos)} pares evaluados, la corrección de Bonferroni exige p &lt; ${bonferroni.umbral.toFixed(5)}.
-      Las reglas son descriptivas, históricas (2016–2018) y no implican causalidad.
-    </div>`;
+    <p class="muted">${nota} Bonferroni (${formatInt(bonferroni.conjuntos)} pares): p &lt; ${bonferroni.umbral.toFixed(5)}. Reglas descriptivas.</p>`;
 }
 
 export function renderAssociationTab(association, state) {
@@ -224,10 +206,8 @@ export function renderAssociationTab(association, state) {
     <div style="display:flex; flex-direction:column; gap:1rem; margin-top:0.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
         <div>
-          <strong style="font-size:0.88rem;">Reglas de asociación entre categorías (Apriori, FP-Growth y ECLAT)</strong>
-          <p style="font-size:0.77rem; color:var(--text-secondary);">
-            Resultados calculados por <code>src/asociacion.py</code> sobre pedidos reales de Olist. Cada fila declara su población de referencia.
-          </p>
+          <strong style="font-size:0.88rem;">Reglas de asociación</strong>
+          <p style="font-size:0.77rem; color:var(--text-secondary);">Sobre pedidos entregados de Olist.</p>
         </div>
         <div style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-end;">
           <div class="tabs-bar">
@@ -306,15 +286,14 @@ export function renderAssociationTab(association, state) {
       </div>
 
       ${seleccionada ? renderRuleDetail(poblacion, seleccionada) : ''}
-      ${renderReading(association, clave, bonferroni)}
+      ${renderReading(clave, bonferroni)}
       ${renderComparison(poblacion)}
       ${renderThresholds(poblacion)}
 
-      <div style="font-size:0.76rem; color:var(--text-secondary);">
-        Archivos:
-        <a class="mono" href="${base}reglas_asociacion${sufijo}.csv" download>reglas_asociacion${sufijo}.csv</a> ·
-        <a class="mono" href="${base}reglas_asociacion_trazabilidad${sufijo}.csv" download>reglas_asociacion_trazabilidad${sufijo}.csv</a> ·
-        <a class="mono" href="${base}comparacion_asociacion${sufijo}.csv" download>comparacion_asociacion${sufijo}.csv</a>
+      <div class="tabs-bar" style="font-size:0.76rem;">
+        <a class="btn" href="${base}reglas_asociacion${sufijo}.csv" download>Reglas</a>
+        <a class="btn" href="${base}reglas_asociacion_trazabilidad${sufijo}.csv" download>Trazabilidad</a>
+        <a class="btn" href="${base}comparacion_asociacion${sufijo}.csv" download>Comparación</a>
       </div>
     </div>`;
 }

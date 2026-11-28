@@ -1,6 +1,5 @@
 /**
- * Controlador Principal y Router SPA de DataSmart Frontend
- * Arquitectura Modular Senior Frontend — UNMSM FISI Minería de Datos
+ * Controlador principal y router de la aplicación.
  */
 
 import { loadDataSmartStore } from './services/dataService.js';
@@ -23,7 +22,7 @@ const appState = {
   dictTableFilter: 'ALL',
   dictSearchQuery: '',
   dictOnlyNulls: false,
-  // Business Models Workbench state
+  // Estado del laboratorio de modelos
   activeLabTab: 'rfm',
   minLift: 0,
   assocPopulation: 'principal',
@@ -38,26 +37,11 @@ const appState = {
 let dataStore = null;
 
 const VIEW_METADATA = {
-  dashboard: {
-    section: 'Comprensión de los Datos & KPIs (Secciones 1, 6, 7 y 8)',
-    title: 'Dashboard Ejecutivo & Análisis Exploratorio (EDA)',
-  },
-  quality: {
-    section: 'Auditoría de Datos & Preprocesamiento (Sección 9)',
-    title: 'Evaluación de Calidad de Datos y Plan de Tratamiento',
-  },
-  dictionary: {
-    section: 'Gobierno de Datos & Esquema SQL (Secciones 6 y 10)',
-    title: 'Diccionario de Datos (52 Columnas) & Modelo Relacional',
-  },
-  models: {
-    section: 'Modelado & Explicabilidad (Sección 5 — PN-01 a PN-10)',
-    title: 'Laboratorio de Preguntas de Negocio y Modelos Predictivos',
-  },
-  roadmap: {
-    section: 'Metodología & Arquitectura (Secciones 11, 12 y 13)',
-    title: 'Ciclo CRISP-DM, Stack Tecnológico y Hoja de Ruta',
-  },
+  dashboard: { section: 'Resumen', title: 'Dashboard' },
+  quality: { section: 'Datos', title: 'Calidad de datos' },
+  dictionary: { section: 'Datos', title: 'Diccionario de datos' },
+  models: { section: 'Modelos', title: 'Laboratorio de modelos' },
+  roadmap: { section: 'Proyecto', title: 'Metodología y avances' },
 };
 
 function renderActiveView() {
@@ -90,13 +74,13 @@ function renderAppShell() {
         <div class="sidebar-brand">
           <div class="brand-logo">DS</div>
           <div class="brand-text">
-            <h1>DataSmart <span class="brand-badge">v1.0</span></h1>
-            <p>Olist E-Commerce • UNMSM FISI</p>
+            <h1>DataSmart</h1>
+            <p>Olist E-Commerce</p>
           </div>
         </div>
 
         <div class="sidebar-section">
-          <div class="sidebar-section-label">Módulos Analíticos</div>
+          <div class="sidebar-section-label">Módulos</div>
           <ul class="nav-list">
             <li>
               <button
@@ -104,11 +88,7 @@ function renderAppShell() {
                 data-action="navigate"
                 data-view="dashboard"
               >
-                <span class="nav-btn-left">
-                  <span class="nav-icon">📊</span>
-                  <span>Dashboard & EDA</span>
-                </span>
-                <span class="nav-pill">8 KPIs</span>
+                <span class="nav-btn-left"><span class="nav-icon">📊</span><span>Dashboard</span></span>
               </button>
             </li>
             <li>
@@ -117,11 +97,7 @@ function renderAppShell() {
                 data-action="navigate"
                 data-view="quality"
               >
-                <span class="nav-btn-left">
-                  <span class="nav-icon">🛡️</span>
-                  <span>Calidad de Datos</span>
-                </span>
-                <span class="nav-pill">7 Reglas</span>
+                <span class="nav-btn-left"><span class="nav-icon">🛡️</span><span>Calidad de datos</span></span>
               </button>
             </li>
             <li>
@@ -130,11 +106,7 @@ function renderAppShell() {
                 data-action="navigate"
                 data-view="dictionary"
               >
-                <span class="nav-btn-left">
-                  <span class="nav-icon">📖</span>
-                  <span>Diccionario & SQL</span>
-                </span>
-                <span class="nav-pill">52 Cols</span>
+                <span class="nav-btn-left"><span class="nav-icon">📖</span><span>Diccionario</span></span>
               </button>
             </li>
             <li>
@@ -143,11 +115,7 @@ function renderAppShell() {
                 data-action="navigate"
                 data-view="models"
               >
-                <span class="nav-btn-left">
-                  <span class="nav-icon">🧠</span>
-                  <span>Modelos (PN-01..10)</span>
-                </span>
-                <span class="nav-pill">10 PN</span>
+                <span class="nav-btn-left"><span class="nav-icon">🧠</span><span>Modelos</span></span>
               </button>
             </li>
             <li>
@@ -156,60 +124,36 @@ function renderAppShell() {
                 data-action="navigate"
                 data-view="roadmap"
               >
-                <span class="nav-btn-left">
-                  <span class="nav-icon">🔄</span>
-                  <span>Hoja de Ruta CRISP-DM</span>
-                </span>
-                <span class="nav-pill">Sem 7–16</span>
+                <span class="nav-btn-left"><span class="nav-icon">🔄</span><span>Metodología</span></span>
               </button>
             </li>
           </ul>
         </div>
 
         <div class="sidebar-section">
-          <div class="sidebar-section-label">Accesos Directos por Técnica</div>
+          <div class="sidebar-section-label">Análisis</div>
           <ul class="nav-list">
             <li>
               <button class="nav-btn" data-action="quick-lab" data-tab="rfm">
                 <span class="nav-btn-left"><span class="nav-icon">👥</span><span>Segmentación RFM</span></span>
-                <span class="nav-pill">PN-01</span>
               </button>
             </li>
             <li>
               <button class="nav-btn" data-action="quick-lab" data-tab="association">
-                <span class="nav-btn-left"><span class="nav-icon">🛒</span><span>Reglas Asociación</span></span>
-                <span class="nav-pill">PN-05</span>
+                <span class="nav-btn-left"><span class="nav-icon">🛒</span><span>Reglas de asociación</span></span>
               </button>
             </li>
             <li>
               <button class="nav-btn" data-action="quick-lab" data-tab="logistics">
                 <span class="nav-btn-left"><span class="nav-icon">🚚</span><span>Regresión de entrega</span></span>
-                <span class="nav-pill">PN-07</span>
               </button>
             </li>
             <li>
               <button class="nav-btn" data-action="quick-lab" data-tab="nlp">
-                <span class="nav-btn-left"><span class="nav-icon">💬</span><span>Minería Texto NLP</span></span>
-                <span class="nav-pill">PN-10</span>
+                <span class="nav-btn-left"><span class="nav-icon">💬</span><span>Minería de texto</span></span>
               </button>
             </li>
           </ul>
-        </div>
-
-        <div class="sidebar-footer">
-          <div class="crisp-status-box">
-            <div class="crisp-status-header">
-              <span><span class="status-dot"></span>Dataset Olist</span>
-              <span class="mono">99.441 filas</span>
-            </div>
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill" style="width: 100%;"></div>
-            </div>
-            <div style="color:var(--text-secondary); font-size:0.72rem; display:flex; justify-content:space-between;">
-              <span>9 archivos CSV</span>
-              <span>R$ 13,22M</span>
-            </div>
-          </div>
         </div>
       </aside>
 

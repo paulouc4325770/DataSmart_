@@ -1,6 +1,5 @@
 /**
- * Módulo 2: Evaluación de Calidad de Datos & Plan de Tratamiento
- * Cubre la Sección 9 y Sección 9.1 del Informe de Avance (Semana 7).
+ * Calidad de datos y plan de tratamiento.
  */
 
 import { formatInt, formatPct } from '../utils/formatters.js';
@@ -65,15 +64,7 @@ export function renderDataQualityView(store, state) {
       </article>
     </section>
 
-    <div class="method-note">
-      <strong>Criterio de Auditoría (Sección 9):</strong>
-      Se evaluaron cuatro dimensiones sobre los CSV originales sin imputación previa:
-      <strong>Completitud</strong> (valores nulos), <strong>Unicidad</strong> (duplicados de filas y claves),
-      <strong>Consistencia Referencial</strong> (relaciones 1:N en pagos, reseñas y códigos postales) y
-      <strong>Validez de Rangos</strong> (secuencia temporal de marcas de tiempo).
-    </div>
-
-    ${qualityValidations.length ? `<div class="method-note"><strong>Validaciones de preparación:</strong> ${formatInt(qualityValidations.length - validationFailures.length)} OK / ${formatInt(validationFailures.length)} con resultado distinto de OK.</div>` : ''}
+    ${qualityValidations.length ? `<p class="muted">Validaciones: ${formatInt(qualityValidations.length - validationFailures.length)} OK / ${formatInt(validationFailures.length)} con resultado distinto de OK.</p>` : ''}
 
     <!-- Tabla de Incidencias de Calidad + Plan de Tratamiento -->
     <section class="grid-asymmetric">
@@ -81,8 +72,8 @@ export function renderDataQualityView(store, state) {
       <article class="card">
         <div class="card-header">
           <div class="card-title-group">
-            <h3>🔍 Matriz de Incidencias de Calidad de Datos (Sección 9)</h3>
-            <p>Estadísticas exactas calculadas sobre los archivos originales de la zona <code>data/raw/</code></p>
+            <h3>Incidencias de calidad</h3>
+            <p>Conteo sobre los archivos originales.</p>
           </div>
           <div class="tabs-bar">
             ${['ALL', 'Alta', 'Media', 'Baja']
@@ -102,7 +93,7 @@ export function renderDataQualityView(store, state) {
         </div>
 
         <div class="table-wrap quality-issues-table-wrap">
-          <p class="muted">Desliza horizontalmente para consultar todas las columnas.</p>
+          <p class="muted">Desplázate para ver todas las columnas.</p>
           <table class="data-table">
             <thead>
               <tr>
@@ -165,14 +156,12 @@ export function renderDataQualityView(store, state) {
         </div>
       </article>
 
-      <!-- Sección 9.1: Plan de Tratamiento (7 Reglas) -->
       <article class="card">
         <div class="card-header">
           <div class="card-title-group">
-            <h3>🛡️ Plan de Tratamiento (Sección 9.1)</h3>
-            <p>7 reglas de ingeniería de datos para la zona <code>data/processed/</code></p>
+            <h3>Plan de tratamiento</h3>
+            <p>Reglas aplicadas a los datos procesados.</p>
           </div>
-          <span class="chip chip-emerald">CRISP-DM Fase 3</span>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:0.75rem;">
@@ -199,40 +188,25 @@ export function renderDataQualityView(store, state) {
       </article>
     </section>
 
-    <!-- Diagnóstico de Integridad Referencial y Claves -->
     <section class="card">
-      <div class="card-header">
-        <div class="card-title-group">
-          <h3>🔗 Reglas Críticas de Integridad Referencial y Prevención de Multiplicación en Joins</h3>
-          <p>Hallazgos estructurales documentados en las Secciones 6, 9 y 10 del Informe</p>
-        </div>
-      </div>
-
+      <div class="card-header"><div class="card-title-group"><h3>Integridad referencial</h3></div></div>
       <div class="grid-3">
         <div style="padding:1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-rose);">
-          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">1. Geolocalización (1.000.163 filas)</h4>
+          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">Geolocalización</h4>
           <p style="font-size:0.79rem; color:var(--text-secondary);">
-            Presenta <strong>261.831 filas duplicadas exactas (26,18%)</strong> y múltiples coordenadas por cada
-            <code>geolocation_zip_code_prefix</code> (19.015 prefijos distintos). Hacer un <code>JOIN</code> directo sin
-            agrupar previamente por prefijo postal multiplica artificialmente las filas de pedidos y ventas.
+            261.831 filas duplicadas (26,18%); agrupar por prefijo postal antes de unir.
           </p>
         </div>
-
         <div style="padding:1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-amber);">
-          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">2. Opiniones y Review ID Repetidos</h4>
+          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">Reseñas</h4>
           <p style="font-size:0.79rem; color:var(--text-secondary);">
-            De las 99.224 reseñas, existen <strong>98.410 <code>review_id</code> distintos</strong> y
-            <strong>98.673 <code>order_id</code> distintos</strong>. Un pedido puede tener más de una reseña; por ello se
-            recomienda clave surrogate interna y agregación previa por <code>order_id</code>.
+            98.410 <code>review_id</code> distintos en 99.224 reseñas; agregar por <code>order_id</code>.
           </p>
         </div>
-
         <div style="padding:1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:3px solid var(--accent-primary);">
-          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">3. Customer ID vs Customer Unique ID</h4>
+          <h4 style="font-size:0.88rem; margin-bottom:0.35rem;">Clientes</h4>
           <p style="font-size:0.79rem; color:var(--text-secondary);">
-            <code>customer_id</code> (99.441 valores) es un identificador transaccional por pedido, mientras que
-            <code>customer_unique_id</code> (96.096 valores) identifica al comprador real. Todo modelo RFM y clustering
-            (PN-01 y PN-02) debe agrupar por <code>customer_unique_id</code>.
+            <code>customer_id</code> identifica el pedido; <code>customer_unique_id</code>, al comprador. Agrupar por este último.
           </p>
         </div>
       </div>

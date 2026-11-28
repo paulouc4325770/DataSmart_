@@ -469,42 +469,6 @@ input::placeholder {
   gap: 1.5rem;
 }
 
-/* Hero Banner */
-.context-banner {
-  background: linear-gradient(120deg, color-mix(in srgb, var(--pink) 35%, var(--white)), color-mix(in srgb, var(--lavender) 25%, var(--white)) 70%, var(--bg-surface));
-  border: 1px solid var(--border-accent);
-  border-radius: var(--radius-lg);
-  padding: 1.35rem 1.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.context-banner-info h2 {
-  color: var(--petrol);
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.context-banner-info p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  max-width: 820px;
-}
-
-.context-meta-chips {
-  display: flex;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-
 .chip {
   display: inline-flex;
   align-items: center;
@@ -744,6 +708,23 @@ input::placeholder {
 }
 
 /* Horizontal Bars & Visual Charts */
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+}
+
+.chart-summary {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
 .bar-row {
   display: flex;
   flex-direction: column;

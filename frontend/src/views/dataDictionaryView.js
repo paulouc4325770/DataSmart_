@@ -1,12 +1,11 @@
 /**
- * Módulo 3: Diccionario de Datos (52 Columnas) & Esquema Relacional Olist
- * Cubre la Sección 6 y Sección 10 (10.1 a 10.9) del Informe + `resultados/diccionario_perfilado.csv`.
+ * Diccionario de datos y perfilado de columnas.
  */
 
 import { formatInt, formatPct } from '../utils/formatters.js';
 
 export function renderDataDictionaryView(store, state) {
-  const { dictionary, tablesSummary, liveDictionaryConnected = false } = store;
+  const { dictionary, tablesSummary } = store;
   const { dictTableFilter, dictSearchQuery, dictOnlyNulls } = state;
 
   const tablesList = ['ALL', ...tablesSummary.map(t => t.table)];
@@ -32,19 +31,13 @@ export function renderDataDictionaryView(store, state) {
       : null;
 
   return `
-    <!-- Esquema Relacional Entidad-Relación de Olist (Sección 6) -->
     <section class="card">
       <div class="card-header">
         <div class="card-title-group">
-          <h3>🗺️ Arquitectura Relacional del Dataset Olist (9 Entidades)</h3>
-          <p>
-            Relaciones de clave primaria y foránea para la futura persistencia en <strong>PostgreSQL</strong> (Sección 6 y 10).
-            Haz clic en cualquier entidad para filtrar sus columnas en el diccionario.
-          </p>
-        </div>
-        <button class="btn" data-action="export-dictionary">
-          ⬇ Exportar Diccionario Completo (CSV)
-        </button>
+            <h3>Tablas del dataset</h3>
+            <p>Haz clic en una tabla para filtrar sus columnas.</p>
+          </div>
+          <button class="btn" data-action="export-dictionary">⬇ Exportar CSV</button>
       </div>
 
       <div class="grid-3">
@@ -84,14 +77,10 @@ export function renderDataDictionaryView(store, state) {
       <div class="card-header">
         <div class="card-title-group">
           <h3>
-            📖 Diccionario de Datos y Perfilado de Columnas
+            Diccionario de datos
             <span class="chip chip-emerald">${filteredCols.length} de ${dictionary.length} columnas</span>
-            <span class="chip ${liveDictionaryConnected ? 'chip-emerald' : 'chip-amber'}">${liveDictionaryConnected ? 'perfilado API' : 'respaldo local'}</span>
           </h3>
-          <p>
-            Comparativa entre <code>tipo_pandas</code> (inferido en <code>diccionario_perfilado.csv</code>) y
-            <code>Tipo SQL PostgreSQL propuesto</code> (Sección 10 del Informe).
-          </p>
+          <p>Tipos inferidos y propuestos por columna.</p>
         </div>
 
         <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
@@ -109,11 +98,11 @@ export function renderDataDictionaryView(store, state) {
           >
             ⚠️ Solo con Nulos
           </button>
-          ${
-            dictTableFilter !== 'ALL'
-              ? `<button class="btn" data-action="select-dict-table" data-table="ALL">Mostrar las 9 tablas</button>`
-              : ''
-          }
+              ${
+                dictTableFilter !== 'ALL'
+                  ? `<button class="btn" data-action="select-dict-table" data-table="ALL">Mostrar todas</button>`
+                  : ''
+              }
         </div>
       </div>
 
@@ -127,7 +116,7 @@ export function renderDataDictionaryView(store, state) {
             data-action="select-dict-table"
             data-table="${tbl}"
           >
-            ${tbl === 'ALL' ? 'Todas (52)' : tbl}
+            ${tbl === 'ALL' ? 'Todas' : tbl}
           </button>
         `
           )
@@ -137,12 +126,7 @@ export function renderDataDictionaryView(store, state) {
       ${
         activeTableInfo
           ? `
-        <div class="method-note">
-          <strong>Archivo origen:</strong> <code>${activeTableInfo.file}</code> |
-          <strong>Filas:</strong> ${formatInt(activeTableInfo.rows)} |
-          <strong>Clave propuesta:</strong> <code>${activeTableInfo.primaryKey}</code> |
-          <strong>Estado:</strong> ${activeTableInfo.status}
-        </div>
+        <p class="muted"><strong>Clave:</strong> <code>${activeTableInfo.primaryKey}</code> · <strong>Filas:</strong> ${formatInt(activeTableInfo.rows)}</p>
       `
           : ''
       }
@@ -152,13 +136,13 @@ export function renderDataDictionaryView(store, state) {
           <thead>
             <tr>
               <th>Tabla</th>
-              <th>Columna (Nombre Original)</th>
+              <th>Columna</th>
               <th>Tipo Pandas</th>
-              <th>Tipo SQL Propuesto (PostgreSQL)</th>
-              <th>Valores Distintos</th>
+              <th>Tipo SQL</th>
+              <th>Distintos</th>
               <th>Nulos</th>
               <th>% Nulos</th>
-              <th>Significado / Definición de Negocio</th>
+              <th>Significado</th>
             </tr>
           </thead>
           <tbody>
