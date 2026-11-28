@@ -1,14 +1,16 @@
 """Pruebas unitarias para el módulo de análisis de redes y grafos vendedor-producto."""
 
 from pathlib import Path
+import json
 import sys
+from tempfile import TemporaryDirectory
 import unittest
 
 import networkx as nx
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from grafos import construir_grafo, calcular_metricas
+from grafos import construir_grafo, calcular_metricas, ejecutar
 
 
 class TestGrafos(unittest.TestCase):
@@ -38,6 +40,23 @@ class TestGrafos(unittest.TestCase):
         self.assertIn("pagerank", metricas_df.columns)
         self.assertIn("grado_ponderado", metricas_df.columns)
         self.assertEqual(len(resumen_comp), 2)
+
+    def test_generador_exporta_subgrafo_con_misma_procedencia_y_criterio(self):
+        with TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            items_path = tmp / 'items.csv'
+            self.df_items.to_csv(items_path, index=False)
+            ejecutar(items_path, tmp, top_vendedores=2, productos_por_vendedor=1)
+            output = tmp / 'resultados'
+            metadata = json.loads((output / 'grafos_metadata.json').read_text(encoding='utf-8'))
+            subgrafo = json.loads((output / 'grafo_subgrafo.json').read_text(encoding='utf-8'))
+        self.assertEqual(metadata['run_id'], subgrafo['run_id'])
+        self.assertEqual(metadata['sha256_entrada'], subgrafo['sha256_entrada'])
+        self.assertEqual(metadata['ejecutado_en_utc'], subgrafo['ejecutado_en_utc'])
+        self.assertEqual(subgrafo['total_nodos'], metadata['visualizacion']['nodos'])
+        self.assertEqual(subgrafo['total_enlaces'], metadata['visualizacion']['aristas'])
+        self.assertEqual(subgrafo['criterio_seleccion'], metadata['visualizacion']['criterio'])
+        self.assertTrue((set(link['source'] for link in subgrafo['links']) | set(link['target'] for link in subgrafo['links'])) <= {n['id'] for n in subgrafo['nodes']})
 
 
 if __name__ == "__main__":

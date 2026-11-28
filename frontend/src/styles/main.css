@@ -700,6 +700,10 @@ input::placeholder {
   border-radius: var(--radius-sm);
 }
 
+.quality-issues-table-wrap .data-table {
+  min-width: 920px;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

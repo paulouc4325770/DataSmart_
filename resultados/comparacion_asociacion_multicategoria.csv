@@ -1,3 +1,4 @@
 ﻿algoritmo,poblacion,conjuntos_frecuentes,reglas,reglas_en_comun,reglas_con_metricas_iguales,coincide_con_el_otro,tiempo_minimo_s,tiempo_mediana_s,repeticiones,min_pedidos,min_soporte,min_confianza,max_len,total_cestas
-Apriori,multicategoria,43,34,34,34,True,0.001338,0.001451,5,10,0.01383126,0.0,2,723
-FP-Growth,multicategoria,43,34,34,34,True,0.001583,0.001625,5,10,0.01383126,0.0,2,723
+Apriori,multicategoria,43,34,34,34,True,0.001229,0.00138,5,10,0.01383126,0.0,2,723
+FP-Growth,multicategoria,43,34,34,34,True,0.001481,0.001755,5,10,0.01383126,0.0,2,723
+ECLAT,multicategoria,43,34,34,34,True,0.000575,0.000639,5,10,0.01383126,0.0,2,723

@@ -57,6 +57,81 @@ def crear_resultados(carpeta, sufijo='', total=100, inconsistente=False):
 
 
 class PruebasCargador(unittest.TestCase):
+    def test_modulo_real_lee_contrato_csv_y_json(self):
+        with TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            escribir(carpeta / 'perfiles_clusters.csv', 'cluster,cantidad\n0,12\n')
+            (carpeta / 'clustering_metadata.json').write_text('{"k_seleccionado": 2}', encoding='utf-8')
+            resultado = servidor.cargar_modulo(carpeta, 'clustering')
+        self.assertEqual(resultado['status'], 'ok')
+        self.assertEqual(resultado['resultados']['perfiles_clusters']['total'], 1)
+        self.assertEqual(resultado['resultados']['clustering_metadata']['k_seleccionado'], 2)
+
+    def test_modulo_ausente_no_inventa_resultados(self):
+        with TemporaryDirectory() as tmp:
+            resultado = servidor.cargar_modulo(Path(tmp), 'nlp')
+        self.assertEqual(resultado['status'], 'sin_resultados')
+        self.assertIn('nlp_metadata.json', resultado['faltantes'])
+
+    def test_grafos_usa_metadatos_actuales_y_subgrafo(self):
+        with TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            escribir(carpeta / 'grafo_metricas.csv', 'pagerank\n0.2\n')
+            escribir(carpeta / 'grafo_aristas.csv', 'peso\n3\n')
+            run_id = 'run-valid'
+            when = '2026-11-27T12:00:00+00:00'
+            meta = {'run_id': run_id, 'sha256_entrada': 'sha-items', 'ejecutado_en_utc': when,
+                    'nodos': 2, 'aristas': 1, 'visualizacion': {'run_id': run_id, 'nodos': 2, 'aristas': 1}}
+            subgrafo = {'run_id': run_id, 'sha256_entrada': 'sha-items', 'ejecutado_en_utc': when,
+                        'total_nodos': 2, 'total_enlaces': 1, 'total_grafo_nodos': 2,
+                        'total_grafo_aristas': 1,
+                        'nodes': [{'id': 'p:p1'}, {'id': 'v:v1'}],
+                        'links': [{'source': 'p:p1', 'target': 'v:v1', 'weight': 3}]}
+            (carpeta / 'grafos_metadata.json').write_text(json.dumps(meta), encoding='utf-8')
+            (carpeta / 'grafo_metadata.json').write_text('{"total_nodos": 99}', encoding='utf-8')
+            (carpeta / 'grafo_subgrafo.json').write_text(json.dumps(subgrafo), encoding='utf-8')
+            resultado = servidor.cargar_modulo(carpeta, 'grafos')
+        self.assertEqual(resultado['status'], 'ok')
+        self.assertIn('grafos_metadata', resultado['resultados'])
+        self.assertNotIn('grafo_metadata', resultado['resultados'])
+        self.assertEqual(resultado['resultados']['grafo_subgrafo']['total_nodos'], 2)
+
+    def test_rechaza_subgrafo_de_otra_ejecucion(self):
+        with TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            meta = {'run_id': 'run-new', 'sha256_entrada': 'sha-new',
+                    'ejecutado_en_utc': '2026-11-27T12:00:00+00:00', 'nodos': 2, 'aristas': 1,
+                    'visualizacion': {'run_id': 'run-new', 'nodos': 2, 'aristas': 1}}
+            old = {'run_id': 'run-old', 'sha256_entrada': 'sha-old',
+                   'ejecutado_en_utc': '2026-11-26T12:00:00+00:00', 'total_nodos': 2,
+                   'total_enlaces': 1, 'total_grafo_nodos': 2, 'total_grafo_aristas': 1,
+                   'nodes': [{'id': 'p:p1'}, {'id': 'v:v1'}],
+                   'links': [{'source': 'p:p1', 'target': 'v:v1', 'weight': 1}]}
+            (carpeta / 'grafo_metricas.csv').write_text('pagerank\n0.2\n', encoding='utf-8')
+            (carpeta / 'grafos_metadata.json').write_text(json.dumps(meta), encoding='utf-8')
+            (carpeta / 'grafo_subgrafo.json').write_text(json.dumps(old), encoding='utf-8')
+            resultado = servidor.cargar_modulo(carpeta, 'grafos')
+        self.assertEqual(resultado['status'], 'parcial')
+        self.assertNotIn('grafo_subgrafo', resultado['resultados'])
+        self.assertIn('run_id', resultado['advertencias'][0])
+
+    def test_carga_contratos_reales_de_clasificacion_y_nlp(self):
+        with TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            escribir(carpeta / 'evaluacion_clasificacion.csv', 'f1_macro\n0.65\n')
+            escribir(carpeta / 'predicciones_clasificacion.csv', 'etiqueta_texto_predicha\npositivo\n')
+            (carpeta / 'clasificacion_metadata.json').write_text('{"n_test": 1}', encoding='utf-8')
+            escribir(carpeta / 'nlp_terminos_frecuentes.csv', 'termino\nprazo\n')
+            escribir(carpeta / 'nlp_coocurrencias.csv', 'termino_1,termino_2\nantes,prazo\n')
+            escribir(carpeta / 'nlp_sentimientos.csv', 'origen_etiqueta,clase\nderivado_de_review_score,positivo_score\n')
+            (carpeta / 'nlp_metadata.json').write_text('{"resenas_con_texto_util": 20}', encoding='utf-8')
+            clasificacion = servidor.cargar_modulo(carpeta, 'clasificacion')
+            nlp = servidor.cargar_modulo(carpeta, 'nlp')
+        self.assertEqual(clasificacion['status'], 'ok')
+        self.assertEqual(clasificacion['resultados']['clasificacion_metadata']['n_test'], 1)
+        self.assertEqual(nlp['status'], 'ok')
+        self.assertEqual(nlp['resultados']['nlp_metadata']['resenas_con_texto_util'], 20)
+
     def test_sin_resultados_indica_que_ejecutar(self):
         with TemporaryDirectory() as tmp:
             r = servidor.cargar_asociacion(Path(tmp))
@@ -113,6 +188,61 @@ class PruebasCargador(unittest.TestCase):
 
 
 class PruebaHttp(unittest.TestCase):
+    def test_resultados_entrega_perfil_calidad_y_diccionarios_generados(self):
+        with TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / 'calidad').mkdir()
+            escribir(tmp / 'resumen_tablas.csv', 'tabla,filas,columnas,celdas_nulas,filas_duplicadas_exactas\nopiniones,10,7,4,0\n')
+            escribir(tmp / 'diccionario_perfilado.csv', 'tabla,columna,tipo_pandas,nulos,porcentaje_nulos,valores_distintos\nopiniones,review_comment_message,object,4,40.0,6\n')
+            escribir(tmp / 'diccionario_datos.csv', 'tabla,columna,descripcion\nopiniones,review_comment_message,Mensaje de reseña\n')
+            escribir(tmp / 'diccionario_procesados.csv', 'tabla,columna\npedidos,order_id\n')
+            escribir(tmp / 'diccionario_variables_derivadas.csv', 'columna,descripcion\ndias_entrega,Días observados\n')
+            escribir(tmp / 'calidad' / 'perfil_antes.csv', 'tabla,columna,nulos,porcentaje_nulos\nopiniones,review_comment_message,4,40.0\n')
+            escribir(tmp / 'calidad' / 'perfil_despues.csv', 'tabla,columna,nulos,porcentaje_nulos\nopiniones,review_comment_message,4,40.0\n')
+            escribir(tmp / 'calidad' / 'validaciones.csv', 'control,resultado\nclave,OK\n')
+            escribir(tmp / 'calidad' / 'indicadores_preparacion.csv', 'indicador,valor\nentregados_sin_fecha,2\n')
+            escribir(tmp / 'calidad' / 'incidencias.csv', 'tabla,columna,regla,afectados,tratamiento\nopiniones,review_comment_message,texto_vacio,2,limpiar\nopiniones,review_comment_message,texto_vacio,3,limpiar\n')
+            (tmp / 'calidad' / 'metadata.json').write_text('{"sha256_origen": "ziphash"}', encoding='utf-8')
+            original = servidor.RESULTADOS_DIR
+            servidor.RESULTADOS_DIR = tmp
+            httpd = ThreadingHTTPServer(('127.0.0.1', 0), servidor.DataSmartHandler)
+            hilo = threading.Thread(target=httpd.serve_forever, daemon=True)
+            hilo.start()
+            try:
+                url = f'http://127.0.0.1:{httpd.server_address[1]}/api/resultados'
+                with urllib.request.urlopen(url, timeout=10) as respuesta:
+                    payload = json.loads(respuesta.read().decode('utf-8'))
+            finally:
+                httpd.shutdown()
+                httpd.server_close()
+                servidor.RESULTADOS_DIR = original
+        self.assertEqual(payload['calidad_validaciones'][0]['resultado'], 'OK')
+        self.assertEqual(payload['calidad_incidencias_resumen']['grupos'][0]['afectados'], 5)
+        self.assertEqual(payload['diccionario_datos'][0]['descripcion'], 'Mensaje de reseña')
+        self.assertEqual(payload['calidad_metadata']['sha256_origen'], 'ziphash')
+
+    def test_endpoint_modulo_publica_artefactos_json(self):
+        with TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            escribir(tmp / 'nlp_sentimientos.csv', 'clase,cantidad\npositivo,3\n')
+            (tmp / 'nlp_metadata.json').write_text('{"resenas_con_texto_util": 3}', encoding='utf-8')
+            original = servidor.RESULTADOS_DIR
+            servidor.RESULTADOS_DIR = tmp
+            httpd = ThreadingHTTPServer(('127.0.0.1', 0), servidor.DataSmartHandler)
+            hilo = threading.Thread(target=httpd.serve_forever, daemon=True)
+            hilo.start()
+            try:
+                url = f'http://127.0.0.1:{httpd.server_address[1]}/api/nlp'
+                with urllib.request.urlopen(url, timeout=10) as respuesta:
+                    datos = json.loads(respuesta.read().decode('utf-8'))
+            finally:
+                httpd.shutdown()
+                httpd.server_close()
+                servidor.RESULTADOS_DIR = original
+        self.assertEqual(datos['status'], 'ok')
+        self.assertEqual(datos['resultados']['nlp_sentimientos']['filas'][0]['cantidad'], '3')
+        self.assertEqual(datos['resultados']['nlp_metadata']['resenas_con_texto_util'], 3)
+
     def test_endpoint_devuelve_json(self):
         with TemporaryDirectory() as tmp:
             tmp = Path(tmp)

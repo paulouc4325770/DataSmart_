@@ -1,3 +1,4 @@
 ﻿algoritmo,poblacion,conjuntos_frecuentes,reglas,reglas_en_comun,reglas_con_metricas_iguales,coincide_con_el_otro,tiempo_minimo_s,tiempo_mediana_s,repeticiones,min_pedidos,min_soporte,min_confianza,max_len,total_cestas
-Apriori,todas,87,34,34,34,True,0.062537,0.066884,5,10,0.0001051,0.0,2,95146
-FP-Growth,todas,87,34,34,34,True,0.14388,0.147453,5,10,0.0001051,0.0,2,95146
+Apriori,todas,87,34,34,34,True,0.111264,0.112713,5,10,0.0001051,0.0,2,95146
+FP-Growth,todas,87,34,34,34,True,0.180425,0.230937,5,10,0.0001051,0.0,2,95146
+ECLAT,todas,87,34,34,34,True,0.081536,0.085883,5,10,0.0001051,0.0,2,95146

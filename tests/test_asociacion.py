@@ -13,7 +13,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from asociacion import (
-    apriori, comparar_reglas, construir_cestas, diagnostico_umbrales, ejecutar, fp_growth,
+    apriori, comparar_reglas, construir_cestas, diagnostico_umbrales, eclat, ejecutar, fp_growth,
     generar_reglas, indice_multicategoria, p_hipergeometrico, pedidos_de_regla, trazabilidad,
 )
 
@@ -82,17 +82,22 @@ class PruebasAlgoritmos(unittest.TestCase):
                                      f'apriori semilla={semilla} min={min_count} len={max_len}')
                     self.assertEqual(fp_growth(cestas, min_count, max_len), esperado,
                                      f'fp_growth semilla={semilla} min={min_count} len={max_len}')
+                    self.assertEqual(eclat(cestas, min_count, max_len), esperado,
+                                     f'eclat semilla={semilla} min={min_count} len={max_len}')
 
     def test_umbral_sin_conjuntos_frecuentes(self):
         cestas = [('a',), ('b',), ('a', 'b')]
         self.assertEqual(apriori(cestas, 5, 2), {})
         self.assertEqual(fp_growth(cestas, 5, 2), {})
+        self.assertEqual(eclat(cestas, 5, 2), {})
 
     def test_reglas_iguales_entre_algoritmos(self):
         cestas = cestas_aleatorias(11)
         ra = generar_reglas(apriori(cestas, 3, 3), len(cestas), 0.0)
         rf = generar_reglas(fp_growth(cestas, 3, 3), len(cestas), 0.0)
+        re = generar_reglas(eclat(cestas, 3, 3), len(cestas), 0.0)
         self.assertTrue(comparar_reglas(ra, rf)['coinciden'])
+        self.assertTrue(comparar_reglas(ra, re)['coinciden'])
         self.assertGreater(len(ra), 0)
 
 
@@ -220,7 +225,7 @@ class PruebaDeExtremoAExtremo(unittest.TestCase):
                 self.assertEqual(por_regla[fila['regla_id']], fila['n_pedidos'])
 
             comp = pd.read_csv(res / 'comparacion_asociacion.csv', encoding='utf-8-sig')
-            self.assertEqual(list(comp['algoritmo']), ['Apriori', 'FP-Growth'])
+            self.assertEqual(list(comp['algoritmo']), ['Apriori', 'FP-Growth', 'ECLAT'])
             self.assertTrue(comp['coincide_con_el_otro'].all())
             self.assertTrue((comp['reglas'] == 2).all())
 

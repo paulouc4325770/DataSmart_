@@ -1,20 +1,27 @@
 ﻿{
-  "total_registros_evaluacion": 37,
+  "total_registros_evaluacion": 68,
   "familias_tecnicas": [
     "Reglas de Asociación",
     "Clustering RFM",
+    "Clustering RFM DBSCAN",
     "Grafos y Redes Complejas",
     "Series Temporales",
-    "Regresión Predictiva"
+    "Regresión Predictiva",
+    "Clasificación de reseñas",
+    "NLP de reseñas",
+    "Explicabilidad",
+    "Monitoreo retrospectivo"
   ],
   "modelos_evaluados": [
     "apriori",
     "fp-growth",
+    "eclat",
     "kmeans_k2",
     "kmeans_k3",
     "kmeans_k4",
     "kmeans_k5",
     "kmeans_k6",
+    "dbscan_muestra_fija",
     "red_vendedor_producto_bipartita",
     "pagerank_ponderado",
     "baseline_ultimo",
@@ -22,7 +29,12 @@
     "suavizamiento_exponencial_holt",
     "baseline_mediana",
     "ridge",
-    "random_forest"
+    "random_forest",
+    "logistic_regression_tfidf",
+    "derivado_de_review_score",
+    "calculado_desde_texto_lexico",
+    "heuristica_de_vocabulario",
+    "ee3f0e188f241c5fef7864593f11b1349307749e2a6be89cf2501f15bea97afb"
   ],
   "metricas_consolidadas": [
     "reglas_generadas",
@@ -30,6 +42,10 @@
     "silhouette_score",
     "davies_bouldin_index",
     "inercia_wcss",
+    "n_clusters_sin_ruido",
+    "porcentaje_ruido",
+    "silhouette_sin_ruido",
+    "davies_bouldin_sin_ruido",
     "total_nodos",
     "total_aristas",
     "max_pagerank",
@@ -37,6 +53,25 @@
     "rmse_brl",
     "mae_dias",
     "rmse_dias",
-    "r2_score"
+    "r2_score",
+    "accuracy",
+    "precision_macro",
+    "recall_macro",
+    "f1_macro",
+    "roc_auc_ovr_macro",
+    "pr_auc_macro_ovr",
+    "porcentaje_negativo_score",
+    "porcentaje_neutral_score",
+    "porcentaje_positivo_score",
+    "porcentaje_negativo_lexico",
+    "porcentaje_neutral_lexico",
+    "porcentaje_positivo_lexico",
+    "porcentaje_portugues_probable",
+    "porcentaje_idioma_incierto",
+    "coeficientes_globales_exportados",
+    "contribuciones_locales_exportadas",
+    "psi_longitud_caracteres",
+    "psi_cantidad_tokens",
+    "psi_sentimiento_score_proxy"
   ]
 }

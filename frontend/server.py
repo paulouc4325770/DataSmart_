@@ -5,8 +5,9 @@ por `src/eda_olist.py` y `src/asociacion.py` desde la carpeta `../resultados/`.
 
 Endpoints:
     /api/resultados   indicadores del EDA y de la preparacion de datos.
-    /api/asociacion   reglas de asociacion reales, comparacion de algoritmos,
-                      composicion de cestas y pedidos que sustentan cada regla.
+    /api/asociacion   reglas reales, comparación de Apriori/FP-Growth/ECLAT y trazabilidad.
+    /api/{clustering,series,grafos,regresion,clasificacion,nlp,explicabilidad,monitoring,modelos}
+                      contratos de resultados precalculados desde resultados/.
 
 Ejecucion:
     py frontend/server.py
@@ -31,6 +32,118 @@ def read_csv_as_dicts(csv_path: Path):
     with csv_path.open("r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         return list(reader)
+
+
+def resumir_incidencias_calidad(csv_path: Path):
+    """Agrega incidencias por regla sin enviar miles de registros a la UI."""
+    if not csv_path.is_file():
+        return {"total_registros": 0, "grupos": []}
+    grupos = {}
+    total = 0
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as archivo:
+        for fila in csv.DictReader(archivo):
+            clave = (fila.get("tabla", ""), fila.get("columna", ""), fila.get("regla", ""))
+            item = grupos.setdefault(clave, {
+                "tabla": clave[0], "columna": clave[1], "regla": clave[2],
+                "afectados": 0, "tratamiento": fila.get("tratamiento", ""),
+            })
+            try:
+                item["afectados"] += int(float(fila.get("afectados") or 0))
+            except (TypeError, ValueError):
+                pass
+            total += 1
+    return {"total_registros": total, "grupos": sorted(
+        grupos.values(), key=lambda item: (-item["afectados"], item["tabla"], item["regla"]),
+    )}
+
+
+def _read_json(path: Path):
+    if not path.is_file():
+        raise FileNotFoundError(path.name)
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def validar_procedencia_subgrafo(metadata, subgrafo):
+    """Evita servir el subgrafo si no corresponde al último artefacto de grafo."""
+    if not isinstance(metadata, dict) or not isinstance(subgrafo, dict):
+        return False, "Falta metadata o grafo_subgrafo.json."
+    run_id = metadata.get("run_id")
+    visualizacion = metadata.get("visualizacion") or {}
+    if not run_id or run_id != subgrafo.get("run_id") or run_id != visualizacion.get("run_id"):
+        return False, "run_id ausente o distinto entre grafo y subgrafo."
+    if not metadata.get("sha256_entrada") or metadata.get("sha256_entrada") != subgrafo.get("sha256_entrada"):
+        return False, "El hash de entrada del subgrafo no corresponde a la ejecución actual."
+    if not metadata.get("ejecutado_en_utc") or metadata.get("ejecutado_en_utc") != subgrafo.get("ejecutado_en_utc"):
+        return False, "La fecha de ejecución del subgrafo no corresponde a la metadata actual."
+    nodos = subgrafo.get("nodes")
+    enlaces = subgrafo.get("links")
+    if not isinstance(nodos, list) or not isinstance(enlaces, list):
+        return False, "El subgrafo no contiene listas nodes y links válidas."
+    esperados = visualizacion
+    if len(nodos) != esperados.get("nodos") or len(enlaces) != esperados.get("aristas"):
+        return False, "Los conteos nodes/links no concilian con metadata.visualizacion."
+    if subgrafo.get("total_nodos") != len(nodos) or subgrafo.get("total_enlaces") != len(enlaces):
+        return False, "Los totales declarados no concilian con nodes/links."
+    if subgrafo.get("total_grafo_nodos") != metadata.get("nodos") or subgrafo.get("total_grafo_aristas") != metadata.get("aristas"):
+        return False, "El subgrafo refiere a una red completa distinta de la metadata."
+    ids = {nodo.get("id") for nodo in nodos if isinstance(nodo, dict)}
+    if len(ids) != len(nodos):
+        return False, "Hay identificadores de nodo ausentes o duplicados."
+    if any(not isinstance(link, dict) or link.get("source") not in ids or link.get("target") not in ids for link in enlaces):
+        return False, "Hay enlaces cuyo origen o destino no pertenece a la muestra de nodos."
+    return True, "ok"
+
+
+def cargar_modulo(resultados_dir: Path, modulo: str):
+    """Carga resultados reales con tamaños acotados para la interfaz."""
+    contratos = {
+        "clustering": {"csv": ["perfiles_clusters.csv", "evaluacion_clustering.csv", "rfm_distribuciones.csv", "perfiles_clusters_dbscan.csv", "evaluacion_clustering_dbscan.csv"], "json": ["clustering_metadata.json", "clustering_dbscan_metadata.json"]},
+        "series": {"csv": ["ventas_mensuales.csv", "pronosticos_ventas.csv", "evaluacion_series.csv"], "json": ["series_temporales_metadata.json"]},
+        "regresion": {"csv": ["evaluacion_regresion.csv", "predicciones_entrega.csv"], "json": ["regresion_metadata.json"]},
+        # `grafos.py` publica grafos_metadata.json; el cargador contempla el
+        # nombre histórico grafo_metadata.json como fallback, no como duplicado.
+        "grafos": {"csv": ["grafo_aristas.csv", "grafo_metricas.csv", "grafo_componentes.csv"], "json": ["grafo_subgrafo.json", "grafos_metadata.json"]},
+        "modelos": {"csv": ["evaluacion_comparativa.csv"], "json": ["evaluacion_comparativa_resumen.json"]},
+        "clasificacion": {"csv": ["evaluacion_clasificacion.csv", "predicciones_clasificacion.csv"], "json": ["clasificacion_metadata.json"]},
+        "nlp": {"csv": ["nlp_terminos_frecuentes.csv", "nlp_coocurrencias.csv", "nlp_sentimientos.csv"], "json": ["nlp_metadata.json"]},
+        "explicabilidad": {"csv": ["importancia_variables.csv", "explicaciones_locales.csv"], "json": ["explicabilidad_metadata.json"]},
+        "monitoring": {"csv": ["monitoring_metrics.csv", "data_drift_report.csv", "audit_log.csv", "model_history.csv"], "json": ["model_registry.json"]},
+    }
+    if modulo not in contratos:
+        return {"status": "no_encontrado", "mensaje": "Módulo desconocido."}
+    contrato = contratos[modulo]
+    json_files = list(contrato["json"])
+    if modulo == "grafos" and not (resultados_dir / "grafos_metadata.json").is_file():
+        json_files.append("grafo_metadata.json")
+    # Algunos contratos admiten salidas parciales (p. ej. no hay modelo supervisado).
+    existentes = [n for n in contrato["csv"] + json_files if (resultados_dir / n).is_file()]
+    if not existentes:
+        return {"status": "sin_resultados", "modulo": modulo,
+                "mensaje": "Los resultados de este módulo aún no se han generado.",
+                "faltantes": contrato["csv"] + json_files}
+    datos = {"status": "ok", "source": "resultados/", "modulo": modulo, "resultados": {}}
+    for nombre in contrato["csv"]:
+        ruta = resultados_dir / nombre
+        if ruta.is_file():
+            filas = read_csv_as_dicts(ruta)
+            # Las predicciones/metricas de grafos pueden ser grandes; la UI recibe muestra y N.
+            datos["resultados"][ruta.stem] = {"total": len(filas), "filas": filas[:1000]}
+    for nombre in json_files:
+        ruta = resultados_dir / nombre
+        if ruta.is_file():
+            datos["resultados"][ruta.stem] = _read_json(ruta)
+    datos["faltantes"] = [n for n in contrato["csv"] + json_files if not (resultados_dir / n).is_file()]
+    if modulo == "grafos":
+        metadata = datos["resultados"].get("grafos_metadata") or datos["resultados"].get("grafo_metadata")
+        subgrafo = datos["resultados"].get("grafo_subgrafo")
+        valido, motivo = validar_procedencia_subgrafo(metadata, subgrafo)
+        if not valido:
+            datos["resultados"].pop("grafo_subgrafo", None)
+            datos["status"] = "parcial"
+            datos["advertencias"] = [motivo]
+            if "grafo_subgrafo.json" not in datos["faltantes"]:
+                datos["faltantes"].append("grafo_subgrafo.json (obsoleto o incompatible)")
+    return datos
 
 
 POBLACIONES_ASOCIACION = {
@@ -215,6 +328,17 @@ class DataSmartHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         req_path = parsed.path
 
+        if req_path.startswith("/api/") and req_path[5:] in {
+            "clustering", "series", "grafos", "regresion", "clasificacion",
+            "nlp", "explicabilidad", "monitoring", "modelos",
+        }:
+            try:
+                self.send_json(cargar_modulo(RESULTADOS_DIR, req_path[5:]))
+            except (OSError, ValueError, csv.Error) as error:
+                self.send_json({"status": "error", "mensaje": "No se pudieron leer los resultados.",
+                                "detalle": str(error)}, status=500)
+            return
+
         # Reglas de asociacion reales (src/asociacion.py) con trazabilidad.
         if req_path == "/api/asociacion":
             try:
@@ -236,9 +360,20 @@ class DataSmartHandler(SimpleHTTPRequestHandler):
                 "resumen_tablas": read_csv_as_dicts(RESULTADOS_DIR / "resumen_tablas.csv"),
                 "ventas_mensuales": read_csv_as_dicts(RESULTADOS_DIR / "ventas_mensuales.csv"),
                 "diccionario_perfilado": read_csv_as_dicts(RESULTADOS_DIR / "diccionario_perfilado.csv"),
+                "diccionario_datos": read_csv_as_dicts(RESULTADOS_DIR / "diccionario_datos.csv"),
+                "diccionario_procesados": read_csv_as_dicts(RESULTADOS_DIR / "diccionario_procesados.csv"),
+                "diccionario_variables_derivadas": read_csv_as_dicts(RESULTADOS_DIR / "diccionario_variables_derivadas.csv"),
                 "indicadores_preparacion": read_csv_as_dicts(
                     RESULTADOS_DIR / "calidad" / "indicadores_preparacion.csv"
                 ),
+                "calidad_perfil_antes": read_csv_as_dicts(RESULTADOS_DIR / "calidad" / "perfil_antes.csv"),
+                "calidad_perfil_despues": read_csv_as_dicts(RESULTADOS_DIR / "calidad" / "perfil_despues.csv"),
+                "calidad_validaciones": read_csv_as_dicts(RESULTADOS_DIR / "calidad" / "validaciones.csv"),
+                "calidad_incidencias_resumen": resumir_incidencias_calidad(
+                    RESULTADOS_DIR / "calidad" / "incidencias.csv"
+                ),
+                "calidad_metadata": _read_json(RESULTADOS_DIR / "calidad" / "metadata.json")
+                if (RESULTADOS_DIR / "calidad" / "metadata.json").is_file() else {},
             }
             self.send_json(payload)
             return

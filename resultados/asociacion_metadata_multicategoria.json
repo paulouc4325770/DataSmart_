@@ -1,8 +1,8 @@
 {
-  "ejecutado_en_utc": "2026-11-08T14:17:17.159216+00:00",
-  "python": "3.13.16",
+  "ejecutado_en_utc": "2026-11-27T18:17:48.056751+00:00",
+  "python": "3.12.10",
   "pandas": "2.3.3",
-  "items_csv": "D:\\Paulo\\Desktop\\DataSmart_-main\\data\\processed\\items_procesados.csv",
+  "items_csv": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\processed\\items_procesados.csv",
   "items_sha256": "cff2bd4af6bf56493ce6641c809d0fe7fe27162bdfde48d1011667e86a3a03fe",
   "poblacion_analisis": "multicategoria",
   "poblacion_referencia": "Pedidos entregados con 2 o más categorías conocidas distintas (cestas multicategoría); una cesta por order_id; N=723",

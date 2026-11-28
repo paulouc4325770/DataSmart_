@@ -1,8 +1,8 @@
 {
-  "ejecutado_en_utc": "2026-11-08T14:17:13.397025+00:00",
-  "python": "3.13.16",
+  "ejecutado_en_utc": "2026-11-27T18:17:37.382837+00:00",
+  "python": "3.12.10",
   "pandas": "2.3.3",
-  "items_csv": "D:\\Paulo\\Desktop\\DataSmart_-main\\data\\processed\\items_procesados.csv",
+  "items_csv": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\processed\\items_procesados.csv",
   "items_sha256": "cff2bd4af6bf56493ce6641c809d0fe7fe27162bdfde48d1011667e86a3a03fe",
   "poblacion_analisis": "todas",
   "poblacion_referencia": "Pedidos entregados con al menos un ítem de categoría conocida; una cesta por order_id con categorías distintas; N=95146",

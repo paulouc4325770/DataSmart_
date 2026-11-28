@@ -268,6 +268,33 @@ def fp_growth(cestas, min_count, max_len):
     return salida
 
 
+def eclat(cestas, min_count, max_len):
+    """ECLAT vertical: expande itemsets por intersección de TID-sets."""
+    vertical = {}
+    for tid, cesta in enumerate(cestas):
+        for item in cesta:
+            vertical.setdefault(item, set()).add(tid)
+    salida = {}
+    iniciales = [(item, tids) for item, tids in sorted(vertical.items()) if len(tids) >= min_count]
+
+    def expandir(prefijo, candidatos):
+        for indice, (item, tids) in enumerate(candidatos):
+            conjunto = prefijo + (item,)
+            salida[frozenset(conjunto)] = len(tids)
+            if len(conjunto) >= max_len:
+                continue
+            extensiones = []
+            for otro, otros_tids in candidatos[indice + 1:]:
+                interseccion = tids & otros_tids
+                if len(interseccion) >= min_count:
+                    extensiones.append((otro, interseccion))
+            if extensiones:
+                expandir(conjunto, extensiones)
+
+    expandir((), iniciales)
+    return salida
+
+
 # ---------------------------------------------------------------------------
 # Reglas
 # ---------------------------------------------------------------------------
@@ -520,17 +547,23 @@ def ejecutar(items_csv, pedidos_csv, output_root, min_pedidos=10, min_soporte=No
     transacciones = list(cestas.values())
 
     resultados = {}
-    for nombre, funcion in [('Apriori', apriori), ('FP-Growth', fp_growth)]:
+    funciones = [('Apriori', apriori), ('FP-Growth', fp_growth), ('ECLAT', eclat)]
+    for nombre, funcion in funciones:
         itemsets, tiempos = medir(funcion, repeticiones, transacciones, min_count, max_len)
         resultados[nombre] = {
             'itemsets': itemsets,
             'reglas': generar_reglas(itemsets, n_total, min_confianza),
             'tiempos': tiempos,
         }
-    comparacion = comparar_reglas(resultados['Apriori']['reglas'], resultados['FP-Growth']['reglas'])
-    mismos_itemsets = resultados['Apriori']['itemsets'] == resultados['FP-Growth']['itemsets']
-    if not (comparacion['coinciden'] and mismos_itemsets):
-        salida('ADVERTENCIA: Apriori y FP-Growth no coinciden; revisar antes de usar los resultados.')
+    referencia = resultados['Apriori']
+    comparaciones = {}
+    for nombre, resultado in resultados.items():
+        reglas_comp = comparar_reglas(referencia['reglas'], resultado['reglas'])
+        itemsets_iguales = referencia['itemsets'] == resultado['itemsets']
+        comparaciones[nombre] = {**reglas_comp, 'coinciden': reglas_comp['coinciden'] and itemsets_iguales}
+    algoritmos_coinciden = all(comparacion['coinciden'] for comparacion in comparaciones.values())
+    if not algoritmos_coinciden:
+        salida('ADVERTENCIA: uno o más algoritmos de asociación no coinciden con Apriori; revisar resultados.')
 
     reglas = resultados['Apriori']['reglas']
     ids = [f'AR-{i:03d}' for i in range(1, len(reglas) + 1)]
@@ -549,6 +582,7 @@ def ejecutar(items_csv, pedidos_csv, output_root, min_pedidos=10, min_soporte=No
 
     filas_comparacion = []
     for nombre, r in resultados.items():
+        comparacion = comparaciones[nombre]
         filas_comparacion.append({
             'algoritmo': nombre,
             'poblacion': poblacion,
@@ -556,7 +590,7 @@ def ejecutar(items_csv, pedidos_csv, output_root, min_pedidos=10, min_soporte=No
             'reglas': len(r['reglas']),
             'reglas_en_comun': comparacion['reglas_en_comun'],
             'reglas_con_metricas_iguales': comparacion['reglas_con_metricas_iguales'],
-            'coincide_con_el_otro': comparacion['coinciden'] and mismos_itemsets,
+            'coincide_con_el_otro': comparacion['coinciden'],
             'tiempo_minimo_s': round(min(r['tiempos']), 6),
             'tiempo_mediana_s': round(statistics.median(r['tiempos']), 6),
             'repeticiones': repeticiones,
@@ -589,7 +623,7 @@ def ejecutar(items_csv, pedidos_csv, output_root, min_pedidos=10, min_soporte=No
         'pares_de_categorias_observados': n_pares_observados,
         'reglas': len(reglas),
         'pedidos_rastreados_en_total': len(filas_trazabilidad),
-        'algoritmos_coinciden': bool(comparacion['coinciden'] and mismos_itemsets),
+        'algoritmos_coinciden': bool(algoritmos_coinciden),
     }
     ruta_meta = raiz / f'asociacion_metadata{sufijo}.json'
     ruta_meta.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')

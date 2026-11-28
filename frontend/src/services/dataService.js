@@ -241,6 +241,26 @@ function aMapa(filas) {
   return mapa;
 }
 
+function filasModulo(store, modulo, archivo) {
+  return store.modules?.[modulo]?.resultados?.[archivo]?.filas || [];
+}
+
+function adaptarVentasMensuales(filas) {
+  return (filas || []).map(fila => {
+    const date = fila.order_purchase_timestamp || fila.fecha;
+    const fecha = new Date(`${date}T00:00:00Z`);
+    if (!date || Number.isNaN(fecha.getTime())) return null;
+    return {
+      date: `${fecha.getUTCFullYear()}-${String(fecha.getUTCMonth() + 1).padStart(2, '0')}-01`,
+      monthLabel: new Intl.DateTimeFormat('es', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(fecha),
+      year: fecha.getUTCFullYear(),
+      salesBRL: Number(fila.ventas_articulos_BRL ?? fila.ventas ?? 0),
+      isExtreme: fecha < new Date('2017-01-01T00:00:00Z') || fecha >= new Date('2018-09-01T00:00:00Z'),
+      note: 'Ventas históricas calculadas desde pedidos entregados',
+    };
+  }).filter(Boolean);
+}
+
 /** Actualiza los KPI con los valores de los CSV; conserva los verificados si falta alguno. */
 export function aplicarKpisEnVivo(kpis, payload) {
   const base = aMapa(payload.indicadores_kpi);
@@ -288,6 +308,111 @@ export function aplicarKpisEnVivo(kpis, payload) {
   });
 }
 
+const claveCampo = (tabla, columna) => `${tabla}.${columna}`;
+
+/** Sustituye el perfil estático por el perfilado fresco, conservando el SQL propuesto. */
+export function aplicarDiccionarioEnVivo(diccionario, payload) {
+  const perfil = new Map((payload.diccionario_perfilado || []).map(row => [
+    claveCampo(row.tabla, row.columna), row,
+  ]));
+  const contrato = new Map((payload.diccionario_datos || []).map(row => [
+    claveCampo(row.tabla, row.columna), row,
+  ]));
+  if (!perfil.size && !contrato.size) return diccionario;
+  return diccionario.map(campo => {
+    const llave = claveCampo(campo.table, campo.column);
+    const medido = perfil.get(llave);
+    const definido = contrato.get(llave);
+    return {
+      ...campo,
+      pandasType: medido?.tipo_pandas ?? campo.pandasType,
+      nulls: medido ? Number(medido.nulos) : campo.nulls,
+      nullPct: medido ? Number(medido.porcentaje_nulos) : campo.nullPct,
+      distinct: medido ? Number(medido.valores_distintos) : campo.distinct,
+      meaning: definido?.descripcion ?? campo.meaning,
+    };
+  });
+}
+
+/** Actualiza resumen y problemas con incidencias agregadas de la preparación actual. */
+export function aplicarCalidadEnVivo(tablesSummary, qualityIssues, payload) {
+  const resumen = new Map((payload.resumen_tablas || []).map(row => [row.tabla, row]));
+  const tablas = tablesSummary.map(table => {
+    const row = resumen.get(table.table);
+    if (!row) return table;
+    const rows = Number(row.filas);
+    const duplicates = Number(row.filas_duplicadas_exactas);
+    const nullCells = Number(row.celdas_nulas);
+    return {
+      ...table, rows, cols: Number(row.columnas), nullCells, exactDuplicates: duplicates,
+      status: duplicates ? 'Requiere deduplicación / agregación' : nullCells ? 'Revisar faltantes' : 'Óptimo',
+    };
+  });
+  const nRows = new Map(tablas.map(row => [row.table, row.rows]));
+  const curated = qualityIssues;
+  const groups = payload.calidad_incidencias_resumen?.grupos || [];
+  const perfil = new Map((payload.calidad_perfil_antes || []).map(row => [
+    claveCampo(row.tabla, row.columna), row,
+  ]));
+  const issueForGroup = group => {
+    const issueId = {
+      duplicados_exactos: 'DQ-03',
+      entregado_sin_fecha: 'DQ-04',
+      sin_categoria: 'DQ-07',
+    }[group.regla];
+    return issueId ? curated.find(item => item.id === issueId) : undefined;
+  };
+  let issues = curated.map(issue => {
+    if (issue.id === 'DQ-03') {
+      const table = tablas.find(row => row.table === 'geolocalizacion');
+      const affected = Number(table?.exactDuplicates ?? issue.nullCount);
+      return { ...issue, nullCount: affected, pctRows: table?.rows ? 100 * affected / table.rows : issue.pctRows };
+    }
+    const columna = issue.column.split(' (')[0];
+    const row = perfil.get(claveCampo(issue.table, columna));
+    return row ? {
+      ...issue,
+      nullCount: Number(row.nulos),
+      pctRows: Number(row.porcentaje_nulos),
+    } : issue;
+  });
+  if (groups.length) {
+    const etiquetas = {
+      duplicados_exactos: 'Unicidad (duplicados exactos)',
+      aprobacion_despues_despacho: 'Consistencia temporal',
+      despacho_despues_entrega: 'Consistencia temporal',
+      multiples_resenas: 'Integridad (reseñas 1:N)',
+      sin_items: 'Completitud de relación', sin_pago: 'Completitud de relación',
+      sin_resenas: 'Completitud de relación', sin_categoria: 'Completitud de catálogo',
+      sin_traduccion: 'Completitud de catálogo',
+      sin_geolocalizacion_cliente: 'Cobertura geográfica',
+      sin_geolocalizacion_vendedor: 'Cobertura geográfica',
+      entregado_sin_fecha: 'Completitud / consistencia',
+      cuotas_cero: 'Validez de rango', datos_fisicos_invalidos: 'Validez de rango',
+      datos_fisicos_incompletos: 'Completitud de catálogo',
+    };
+    const extras = groups.filter(group => !issueForGroup(group)).map((group, index) => {
+      const base = curated.find(item => item.table === group.tabla && item.column === '*');
+      const affected = Number(group.afectados) || 0;
+      const denominator = Number(nRows.get(group.tabla)) || 0;
+      const pctRows = denominator ? 100 * affected / denominator : 0;
+      const severity = base?.severity || (group.regla === 'duplicados_exactos' || pctRows >= 20 ? 'Alta' : pctRows >= 1 ? 'Media' : 'Baja');
+      return {
+        id: `DQ-AUTO-${String(index + 1).padStart(2, '0')}`,
+        table: group.tabla,
+        column: group.columna === '*' ? 'Todas las columnas' : group.columna,
+        issueType: etiquetas[group.regla] || String(group.regla).replaceAll('_', ' '),
+        nullCount: affected,
+        pctRows,
+        severity,
+        treatment: group.tratamiento || base?.treatment || 'Revisar la incidencia con la metodología del módulo.',
+      };
+    });
+    issues = [...issues, ...extras];
+  }
+  return { tablesSummary: tablas, qualityIssues: issues };
+}
+
 // ---------------------------------------------------------------------------
 // Store principal
 // ---------------------------------------------------------------------------
@@ -304,6 +429,10 @@ export async function loadDataSmartStore({ baseUrl = '', fetchImpl } = {}) {
     qualityIssues: DATA_QUALITY_ISSUES,
     treatmentPlan: TREATMENT_PLAN_STEPS,
     dictionary: DATA_DICTIONARY,
+    qualityValidations: [],
+    qualityMetrics: {},
+    liveQualityConnected: false,
+    liveDictionaryConnected: false,
     businessQuestions: BUSINESS_QUESTIONS,
     rfmSegments: RFM_SEGMENTS_PREVIEW,
     association: null,
@@ -311,6 +440,7 @@ export async function loadDataSmartStore({ baseUrl = '', fetchImpl } = {}) {
     nlpTopics: NLP_TOPICS_PREVIEW,
     roadmap: CRISP_DM_ROADMAP,
     liveSourceConnected: false,
+    modules: {},
   };
 
   try {
@@ -320,11 +450,37 @@ export async function loadDataSmartStore({ baseUrl = '', fetchImpl } = {}) {
       if (payload && payload.status === 'ok') {
         store.liveSourceConnected = true;
         store.kpis = aplicarKpisEnVivo(store.kpis, payload);
+        const calidad = aplicarCalidadEnVivo(store.tablesSummary, store.qualityIssues, payload);
+        store.tablesSummary = calidad.tablesSummary;
+        store.qualityIssues = calidad.qualityIssues;
+        store.qualityMetrics = Object.fromEntries((payload.indicadores_preparacion || [])
+          .map(row => [row.indicador, Number(row.valor)]));
+        store.qualityValidations = payload.calidad_validaciones || [];
+        store.liveQualityConnected = (payload.calidad_perfil_antes || []).length > 0;
+        store.dictionary = aplicarDiccionarioEnVivo(store.dictionary, payload);
+        store.liveDictionaryConnected = (payload.diccionario_perfilado || []).length > 0;
       }
     }
   } catch (_) {
     // Modo estático / Vite directo: usa los valores verificados de olistData.js.
   }
+
+  // Cargar contratos reales de cada laboratorio. Un módulo ausente queda señalado
+  // explícitamente; nunca se rellena con métricas de demostración.
+  const moduleNames = ['clustering', 'series', 'grafos', 'regresion', 'clasificacion', 'nlp', 'explicabilidad', 'monitoring', 'modelos'];
+  const modules = await Promise.all(moduleNames.map(async name => {
+    try {
+      const response = await doFetch(`${baseUrl}/api/${name}`, { cache: 'no-store' });
+      if (!response.ok) return [name, { status: 'error', mensaje: `HTTP ${response.status}` }];
+      return [name, await response.json()];
+    } catch (_) {
+      return [name, { status: 'sin_api', mensaje: 'Inicia frontend/server.py para consultar resultados locales.' }];
+    }
+  }));
+  store.modules = Object.fromEntries(modules);
+
+  const monthlyRows = filasModulo(store, 'series', 'ventas_mensuales');
+  if (monthlyRows.length) store.monthlySales = adaptarVentasMensuales(monthlyRows);
 
   store.association = await cargarAsociacion(doFetch, baseUrl);
   return store;

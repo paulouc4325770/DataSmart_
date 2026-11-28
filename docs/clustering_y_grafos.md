@@ -85,7 +85,22 @@ compradores elegibles**, con `random_state=42`, `n_init=10`, inicialización
 Regla automática: seleccionar el **mayor Silhouette**, desempatar por menor
 Davies-Bouldin y luego por menor k. Se publican las tres métricas para revisar el
 compromiso; no se promedian métricas de escalas incompatibles ni se reentrena el
-modelo elegido. No se incorpora DBSCAN ni una búsqueda costosa adicional.
+modelo elegido.
+
+## 3.1 DBSCAN como segunda técnica de clustering
+
+DBSCAN se ejecuta sobre una muestra aleatoria fija de hasta 10.000 compradores,
+semilla 42, usando el mismo espacio RFM transformado y estandarizado; parámetros
+actuales: `eps=0.5`, `min_samples=10`, distancia euclidiana. En la muestra real
+de 10.000 produjo 3 clusters, 69 observaciones de ruido (0,69 %), Silhouette
+0,4071 y Davies-Bouldin 0,4750 sobre los puntos no clasificados como ruido.
+
+Los CSV `clientes_clusters_dbscan.csv`, `perfiles_clusters_dbscan.csv` y
+`evaluacion_clustering_dbscan.csv` describen solo esa muestra; **no se asignan
+etiquetas al resto de compradores**. Estos resultados no deben compararse de
+forma directa con el Silhouette de K-Means sin considerar población, ruido y
+protocolo de evaluación. Para regenerar DBSCAN sin sobrescribir los resultados
+K-Means: `python src/clustering.py --solo-dbscan`.
 
 ### Evaluación, perfiles y acciones calculadas
 
@@ -267,6 +282,9 @@ Relaciones más intensas:
 
 Hay 1,189 productos asociados a más de un vendedor. El componente mayor reúne 9,358 nodos (26.60% de la red).
 Visualización: top 5 vendedores por ítems y hasta 12 productos por vendedor según peso de arista; subgrafo inducido de 65 nodos y 60 aristas; semilla 42. Los identificadores completos están en los CSV.
+`grafo_subgrafo.json` se exporta en cada ejecución a partir del mismo subgrafo usado
+para los PNG y registra `run_id`, SHA-256 de entrada y `ejecutado_en_utc`; la API
+comprueba estos campos y los conteos contra `grafos_metadata.json` antes de servirlo.
 Conclusión: las conexiones reflejan asociaciones comerciales observadas y concentración de ítems; no son rutas logísticas, preferencias de compradores ni prueba de competencia. Las métricas se calcularon sobre toda la red, no sobre el dibujo.
 
 <!-- FIN RESULTADOS GRAFOS -->

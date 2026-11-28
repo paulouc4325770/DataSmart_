@@ -1,0 +1,9 @@
+﻿origen_etiqueta,clase,cantidad,porcentaje
+derivado_de_review_score,negativo_score,10882,26.653929997305706
+derivado_de_review_score,neutral_score,3547,8.687878119871653
+derivado_de_review_score,positivo_score,26398,64.65819188282263
+calculado_desde_texto_lexico,negativo_lexico,9695,23.746540279716854
+calculado_desde_texto_lexico,neutral_lexico,14292,35.006245866705854
+calculado_desde_texto_lexico,positivo_lexico,16840,41.24721385357729
+heuristica_de_vocabulario,portugues_probable,30907,75.70235383447229
+heuristica_de_vocabulario,idioma_incierto,9920,24.297646165527716

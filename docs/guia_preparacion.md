@@ -83,8 +83,8 @@ datos = pd.read_csv(
   universo de pedidos elegido. Informar cuántos quedan vacíos y el denominador
   usado para el soporte. Mantener las cestas unitarias en ese denominador.
 - Exportar reglas calculadas y conectar la web a los archivos reales.
-- Actualizar las etiquetas de 53 campos a 52, la recurrencia y el estado de los
-  módulos de demostración al integrar las nuevas salidas.
+- Mantener el diccionario sincronizado con los 52 campos originales y derivadas;
+  los módulos nuevos consultan resultados generados y muestran pendientes cuando faltan.
 
 ### Brandon: RFM y grafos
 

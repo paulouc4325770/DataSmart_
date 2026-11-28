@@ -118,18 +118,27 @@ Los atributos de ítems se agregaron a nivel de pedido (`order_id`) antes de la 
 
 ## 4. Consolidación Comparativa Multimodelo
 
-El archivo `resultados/evaluacion_comparativa.csv` consolida las 5 familias analíticas del proyecto:
+El archivo `resultados/evaluacion_comparativa.csv` consolida las familias analíticas cuyos artefactos de ejecución están disponibles. Los campos de fecha desconocidos en metadatos históricos permanecen vacíos.
 
 | Familia Técnica | Modelos Comparados | Métrica Clave | Mejor Desempeño | Responsable |
 |---|---|---|---|---|
-| **Reglas de Asociación** | Apriori vs FP-Growth | Reglas generadas / Tiempo | FP-Growth (0,07 s vs 0,15 s) | Paulo |
+| **Reglas de Asociación** | Apriori / FP-Growth / ECLAT | Reglas, itemsets / tiempo | Coinciden; ECLAT fue más rápido en la ejecución registrada | Paulo |
 | **Clustering RFM** | K-Means ($k=2..6$) | Silhouette / Davies-Bouldin | $k=2$ (Sil: 0,711; DB: 0,477) | Anderson |
+| **Clustering RFM DBSCAN** | DBSCAN (muestra fija) | Clusters / ruido / Silhouette | 3 clusters, 0,69 % ruido, Silhouette sin ruido 0,407 (N=10.000) | Anderson |
 | **Grafos y Redes** | Bipartita Vendedor-Producto | PageRank / Grado Ponderado | Hub Top PageRank: `4a3ca9...` | Anderson |
 | **Series Temporales** | Naïve vs Suavizamiento Exponencial | MAE (BRL) semanal | SES (MAE: 39.858 BRL, -48,7%) | Brandon |
 | **Regresión Predictiva** | Mediana vs Ridge vs Random Forest | MAE (días) / $R^2$ | Random Forest (4,13 d, $R^2$: 0,072) | Brandon |
+| **Clasificación de reseñas** | TF-IDF + Logistic Regression | F1 macro / ROC-AUC / PR-AUC | F1 macro 0,662; test cronológico N=8.172 | Proyecto |
+| **NLP de reseñas** | TF-IDF y léxico portugués | Distribución, términos y coocurrencias | Descriptivo; polaridad léxica separada del score | Proyecto |
+| **Explicabilidad** | Coeficientes y contribución al logit | Importancia global / explicación local | Asociada al Logistic Regression TF-IDF; no usa SHAP | Proyecto |
+| **Monitoreo retrospectivo** | PSI y registro de versión | Métricas / drift train-test | Histórico; no es monitoreo en tiempo real | Proyecto |
 
 > [!NOTE]
 > Las métricas entre familias analíticas distintas no son conmensurables entre sí (no se puede comparar MAE en BRL con MAE en días o Silhouette con Lift). La comparativa se estructura por familia técnica.
+
+Los valores de la tabla son una instantánea documentada. Las ejecuciones posteriores
+pueden actualizar resultados; consultar CSV/JSON y su `version`, `fuente` y parámetros
+en `evaluacion_comparativa.csv` antes de presentar métricas.
 
 ---
 

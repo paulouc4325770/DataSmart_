@@ -5,6 +5,8 @@ El peso es número de filas de ítem entregado, no importe monetario.
 """
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import platform
@@ -139,6 +141,60 @@ def graficar(grafo, metricas, carpeta, top_vendedores=5, productos_por_vendedor=
             'criterio': 'Top vendedores por grado ponderado; top productos por peso de su arista; subgrafo inducido.'}
 
 
+def crear_documento_subgrafo(grafo, metricas, visualizacion, run_id, sha256_entrada, ejecutado_en_utc):
+    """Serializa exactamente el subgrafo usado por la visualización PNG/API."""
+    seleccionados = visualizacion['nodos_seleccionados']
+    subgrafo = grafo.subgraph(seleccionados)
+    indice_metricas = metricas.set_index('nodo_id')
+    nodos = []
+    for nodo_id in sorted(subgrafo.nodes()):
+        atributos = grafo.nodes[nodo_id]
+        metrica = indice_metricas.loc[nodo_id]
+        identificador = atributos['identificador']
+        nodos.append({
+            'id': nodo_id,
+            'label': nodo_id[:2] + identificador[:8] + '…',
+            'identificador': identificador,
+            'tipo': atributos['tipo_nodo'],
+            'grado': int(metrica['grado']),
+            'grado_ponderado': int(metrica['grado_ponderado']),
+            'pagerank': float(metrica['pagerank']),
+            'componente': int(metrica['componente']),
+        })
+    links = [
+        {'source': a, 'target': b, 'weight': int(atributos['peso'])}
+        for a, b, atributos in sorted(subgrafo.edges(data=True), key=lambda e: (e[0], e[1]))
+    ]
+    return {
+        'run_id': run_id,
+        'sha256_entrada': sha256_entrada,
+        'ejecutado_en_utc': ejecutado_en_utc,
+        'total_nodos': subgrafo.number_of_nodes(),
+        'total_enlaces': subgrafo.number_of_edges(),
+        'total_grafo_nodos': grafo.number_of_nodes(),
+        'total_grafo_aristas': grafo.number_of_edges(),
+        'criterio_seleccion': visualizacion['criterio'],
+        'parametros_visualizacion': {
+            'top_vendedores': visualizacion['top_vendedores'],
+            'productos_por_vendedor': visualizacion['productos_por_vendedor'],
+            'semilla_layout': visualizacion['semilla_layout'],
+        },
+        'nodes': nodos,
+        'links': links,
+    }
+
+
+def id_ejecucion(sha256_entrada, visualizacion):
+    configuracion = json.dumps({
+        'sha256_entrada': sha256_entrada,
+        'top_vendedores': visualizacion['top_vendedores'],
+        'productos_por_vendedor': visualizacion['productos_por_vendedor'],
+        'semilla_layout': visualizacion['semilla_layout'],
+        'criterio': visualizacion['criterio'],
+    }, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+    return hashlib.sha256(configuracion.encode('utf-8')).hexdigest()
+
+
 def publicar_resumen(salida, texto):
     ruta = salida / 'docs' / 'clustering_y_grafos.md'
     if ruta.is_file():
@@ -161,8 +217,21 @@ def ejecutar(items_csv, salida, top_vendedores=5, productos_por_vendedor=12):
     guardar_csv(metricas, resultados / 'grafo_metricas.csv')
     guardar_csv(componentes, resultados / 'grafo_componentes.csv')
     visualizacion = graficar(grafo, metricas, resultados / 'graficos', top_vendedores, productos_por_vendedor)
+    entrada_sha = sha256(items_csv)
+    run_id = id_ejecucion(entrada_sha, visualizacion)
+    ejecutado_en_utc = datetime.now(timezone.utc).isoformat()
+    subgrafo_json = crear_documento_subgrafo(
+        grafo, metricas, visualizacion, run_id, entrada_sha, ejecutado_en_utc,
+    )
+    if (subgrafo_json['total_nodos'] != visualizacion['nodos']
+            or subgrafo_json['total_enlaces'] != visualizacion['aristas']):
+        raise ValueError('El JSON del subgrafo no concilia con el subgrafo usado en la visualización.')
+    (resultados / 'grafo_subgrafo.json').write_text(
+        json.dumps(subgrafo_json, ensure_ascii=False, indent=2) + '\n', encoding='utf-8',
+    )
     metadata = {
-        'fuente': str(items_csv), 'sha256_entrada': sha256(items_csv),
+        'run_id': run_id, 'ejecutado_en_utc': ejecutado_en_utc,
+        'fuente': str(items_csv), 'sha256_entrada': entrada_sha,
         'python': platform.python_version(), 'networkx': nx.__version__, 'pandas': pd.__version__,
         'numpy': np.__version__, 'matplotlib': matplotlib.__version__,
         'poblacion': poblacion, 'nodos': grafo.number_of_nodes(), 'aristas': grafo.number_of_edges(),
@@ -170,7 +239,7 @@ def ejecutar(items_csv, salida, top_vendedores=5, productos_por_vendedor=12):
         'productos': int(metricas['tipo_nodo'].eq('producto').sum()),
         'componentes': len(componentes), 'peso_total': peso_total,
         'pagerank': {'alpha': .85, 'tol': 1e-12, 'max_iter': 1000, 'weight': 'peso', 'suma': float(metricas['pagerank'].sum())},
-        'visualizacion': visualizacion,
+        'visualizacion': {**visualizacion, 'archivo_json': 'grafo_subgrafo.json', 'run_id': run_id},
     }
     (resultados / 'grafos_metadata.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     lineas = [

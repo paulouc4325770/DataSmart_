@@ -6,7 +6,7 @@
 import { formatInt, formatPct } from '../utils/formatters.js';
 
 export function renderDataQualityView(store, state) {
-  const { qualityIssues, treatmentPlan, tablesSummary } = store;
+  const { qualityIssues, treatmentPlan, tablesSummary, qualityValidations = [], qualityMetrics = {}, liveQualityConnected = false } = store;
   const { severityFilter } = state;
 
   const filteredIssues =
@@ -16,6 +16,14 @@ export function renderDataQualityView(store, state) {
 
   const totalNullCells = tablesSummary.reduce((acc, t) => acc + t.nullCells, 0);
   const totalDuplicates = tablesSummary.reduce((acc, t) => acc + t.exactDuplicates, 0);
+  const totalCells = tablesSummary.reduce((acc, table) => acc + table.rows * table.cols, 0);
+  const geo = tablesSummary.find(table => table.table === 'geolocalizacion');
+  const geoDuplicatePct = geo?.rows ? 100 * geo.exactDuplicates / geo.rows : 0;
+  const opinionNulls = qualityIssues.filter(issue => issue.table === 'opiniones' && String(issue.issueType || '').includes('Completitud'))
+    .reduce((sum, issue) => sum + issue.nullCount, 0);
+  const opinionsNullPct = totalNullCells ? 100 * opinionNulls / totalNullCells : 0;
+  const deliveredMissingDate = Number(qualityMetrics.entregados_sin_fecha ?? 0);
+  const validationFailures = qualityValidations.filter(row => row.resultado && row.resultado !== 'OK');
 
   return `
     <!-- Resumen Ejecutivo de Calidad de Datos -->
@@ -23,10 +31,10 @@ export function renderDataQualityView(store, state) {
       <article class="kpi-card">
         <div class="kpi-card-top">
           <span>Total Celdas Analizadas</span>
-          <span class="chip chip-blue">9 Tablas CSV</span>
+          <span class="chip ${liveQualityConnected ? 'chip-emerald' : 'chip-amber'}">${tablesSummary.length} Tablas CSV · ${liveQualityConnected ? 'perfilado API' : 'respaldo local'}</span>
         </div>
-        <div class="kpi-value">8.264.113</div>
-        <div class="kpi-sub"><span>1.547.848 filas totales en Olist</span></div>
+        <div class="kpi-value">${formatInt(totalCells)}</div>
+        <div class="kpi-sub"><span>${formatInt(tablesSummary.reduce((sum, table) => sum + table.rows, 0))} filas totales en las tablas perfiladas</span></div>
       </article>
 
       <article class="kpi-card">
@@ -35,7 +43,7 @@ export function renderDataQualityView(store, state) {
           <span class="chip chip-amber">Completitud</span>
         </div>
         <div class="kpi-value">${formatInt(totalNullCells)}</div>
-        <div class="kpi-sub"><span>Concentradas 95,2% en textos de Opiniones</span></div>
+        <div class="kpi-sub"><span>${formatPct(opinionsNullPct)} concentradas en campos de Opiniones</span></div>
       </article>
 
       <article class="kpi-card">
@@ -44,7 +52,7 @@ export function renderDataQualityView(store, state) {
           <span class="chip chip-rose">Unicidad</span>
         </div>
         <div class="kpi-value">${formatInt(totalDuplicates)}</div>
-        <div class="kpi-sub"><span>100% en tabla Geolocalización (26,18%)</span></div>
+        <div class="kpi-sub"><span>${formatPct(geoDuplicatePct)} de filas exactas en Geolocalización</span></div>
       </article>
 
       <article class="kpi-card">
@@ -52,7 +60,7 @@ export function renderDataQualityView(store, state) {
           <span>Pedidos Entregados sin Fecha</span>
           <span class="chip chip-purple">Consistencia</span>
         </div>
-        <div class="kpi-value">8 pedidos</div>
+        <div class="kpi-value">${formatInt(deliveredMissingDate)} pedidos</div>
         <div class="kpi-sub"><span>order_status = delivered con fecha nula</span></div>
       </article>
     </section>
@@ -64,6 +72,8 @@ export function renderDataQualityView(store, state) {
       <strong>Consistencia Referencial</strong> (relaciones 1:N en pagos, reseñas y códigos postales) y
       <strong>Validez de Rangos</strong> (secuencia temporal de marcas de tiempo).
     </div>
+
+    ${qualityValidations.length ? `<div class="method-note"><strong>Validaciones de preparación:</strong> ${formatInt(qualityValidations.length - validationFailures.length)} OK / ${formatInt(validationFailures.length)} con resultado distinto de OK.</div>` : ''}
 
     <!-- Tabla de Incidencias de Calidad + Plan de Tratamiento -->
     <section class="grid-asymmetric">
@@ -91,7 +101,8 @@ export function renderDataQualityView(store, state) {
           </div>
         </div>
 
-        <div class="table-wrap">
+        <div class="table-wrap quality-issues-table-wrap">
+          <p class="muted">Desliza horizontalmente para consultar todas las columnas.</p>
           <table class="data-table">
             <thead>
               <tr>

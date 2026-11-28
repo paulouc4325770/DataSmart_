@@ -241,3 +241,76 @@ export function renderEntityNetworkSVG(selectedNode = 'SP') {
     </svg>
   `;
 }
+
+/** Red bipartita real acotada procedente del artefacto grafo_subgrafo.json. */
+export function renderOlistSubgraphSVG(subgraph, selectedNode = '') {
+  const nodes = Array.isArray(subgraph?.nodes) ? subgraph.nodes : [];
+  const links = Array.isArray(subgraph?.links) ? subgraph.links : [];
+  if (!nodes.length || !links.length) return '<p>El subgrafo real no está disponible.</p>';
+
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+  const idOf = value => typeof value === 'object' ? value.id : value;
+  const top = [...nodes]
+    .sort((a, b) => Number(b.grado_ponderado || 0) - Number(a.grado_ponderado || 0) || String(a.id).localeCompare(String(b.id)))
+    .slice(0, 24);
+  const ids = new Set(top.map(node => node.id));
+  const visibleLinks = links.filter(link => ids.has(idOf(link.source)) && ids.has(idOf(link.target)));
+  const byId = new Map(top.map(node => [node.id, node]));
+  const sellers = top.filter(node => node.tipo === 'vendedor');
+  const products = top.filter(node => node.tipo === 'producto');
+  const positions = new Map();
+  const place = (list, x) => list.forEach((node, index) => positions.set(node.id, {
+    x, y: 28 + (index + 1) * (320 / (list.length + 1)),
+  }));
+  place(products, 170);
+  place(sellers, 550);
+  const maxWeight = Math.max(1, ...visibleLinks.map(link => Number(link.weight) || 0));
+  const edgeSvg = visibleLinks.map(link => {
+    const source = idOf(link.source), target = idOf(link.target);
+    const a = positions.get(source), b = positions.get(target);
+    if (!a || !b) return '';
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--chart-muted)" stroke-opacity=".58" stroke-width="${1 + 4 * (Number(link.weight || 0) / maxWeight)}"><title>${escape(byId.get(source)?.label)} ↔ ${escape(byId.get(target)?.label)}: ${formatInt(link.weight)} ítems</title></line>`;
+  }).join('');
+  const nodeSvg = top.map(node => {
+    const p = positions.get(node.id);
+    const selected = node.id === selectedNode;
+    const radius = Math.max(6, Math.min(14, 5 + Math.log1p(Number(node.grado_ponderado || 0))));
+    const fill = node.tipo === 'vendedor' ? 'var(--chart-primary)' : 'var(--lavender)';
+    const label = escape(node.label || node.id);
+    return `<g class="graph-node" data-node-id="${escape(node.id)}" role="button" tabindex="0" aria-label="${label}, ${escape(node.tipo)}" aria-pressed="${selected}"><circle cx="${p.x}" cy="${p.y}" r="${radius + (selected ? 4 : 0)}" fill="${fill}" stroke="${selected ? 'var(--chart-tertiary)' : 'var(--chart-muted)'}" stroke-width="${selected ? 3 : 1}"><title>${label}; ${formatInt(node.grado_ponderado)} ítems</title></circle><text x="${p.x + (node.tipo === 'producto' ? -12 : 12)}" y="${p.y + 3}" text-anchor="${node.tipo === 'producto' ? 'end' : 'start'}" fill="var(--text-primary)" font-size="9">${label}</text></g>`;
+  }).join('');
+  return `<svg viewBox="0 0 720 380" width="100%" height="auto" role="group" aria-label="Subgrafo bipartito real vendedor-producto"><text x="170" y="18" text-anchor="middle" fill="var(--text-secondary)" font-size="12">Productos</text><text x="550" y="18" text-anchor="middle" fill="var(--text-secondary)" font-size="12">Vendedores</text>${edgeSvg}${nodeSvg}</svg><p class="muted">Visualización acotada a ${top.length} nodos y ${visibleLinks.length} relaciones del artefacto real (${formatInt(subgraph.total_nodos)} nodos, ${formatInt(subgraph.total_enlaces)} enlaces).</p>`;
+}
+
+/** Compara valores observados y pronósticos de la partición temporal de test. */
+export function renderSeriesTestSVG(rows) {
+  const valid = (Array.isArray(rows) ? rows : []).filter(row =>
+    Number.isFinite(Number(row.venta_real)) && Number.isFinite(Number(row.venta_predicha))
+  );
+  if (!valid.length) return '<p>Sin predicciones temporales disponibles.</p>';
+  const byDate = new Map();
+  for (const row of valid) {
+    const entry = byDate.get(row.fecha) || { fecha: row.fecha, real: Number(row.venta_real), predicciones: [] };
+    entry.predicciones.push(Number(row.venta_predicha));
+    byDate.set(row.fecha, entry);
+  }
+  const points = [...byDate.values()].sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const values = points.flatMap(point => [point.real, ...point.predicciones]);
+  const max = Math.max(1, ...values) * 1.08;
+  const width = 880, height = 300, left = 74, right = 24, top = 20, bottom = 48;
+  const x = index => left + index * (width - left - right) / Math.max(1, points.length - 1);
+  const y = value => top + (height - top - bottom) * (1 - value / max);
+  const observed = points.map((point, index) => `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(point.real).toFixed(1)}`).join(' ');
+  const predicted = points.map((point, index) => {
+    const average = point.predicciones.reduce((sum, value) => sum + value, 0) / point.predicciones.length;
+    return `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(average).toFixed(1)}`;
+  }).join(' ');
+  const grid = [0, .25, .5, .75, 1].map(ratio => {
+    const yy = y(max * ratio);
+    return `<line x1="${left}" y1="${yy}" x2="${width - right}" y2="${yy}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/><text x="${left - 8}" y="${yy + 4}" text-anchor="end" fill="var(--text-secondary)" font-size="10">${formatBRLCompact(max * ratio)}</text>`;
+  }).join('');
+  const first = points[0].fecha, last = points[points.length - 1].fecha;
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="auto" role="img" aria-label="Ventas reales y pronósticos en test temporal">${grid}<path d="${observed}" fill="none" stroke="var(--chart-primary)" stroke-width="2.5"/><path d="${predicted}" fill="none" stroke="var(--chart-secondary)" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${left}" y="${height - 12}" fill="var(--text-secondary)" font-size="10">${first}</text><text x="${width - right}" y="${height - 12}" text-anchor="end" fill="var(--text-secondary)" font-size="10">${last}</text></svg><div class="chart-legend"><span>Ventas reales (test)</span><span>Promedio de modelos evaluados</span></div>`;
+}

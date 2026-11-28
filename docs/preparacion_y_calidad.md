@@ -22,7 +22,7 @@ Informe generado por `python src/preparar_datos.py`.
 6. Reseñas múltiples: media de puntuaciones y cantidad por pedido. Los textos faltantes no eliminan las puntuaciones. Los textos completos siguen disponibles en el ZIP original.
 7. Sin ítems/pagos/reseñas: contador cero, indicador explícito y valores monetarios o puntuaciones desconocidos nulos. Los ceros de cuotas se conservan y señalan.
 8. Secuencias temporales inconsistentes se conservan con indicadores. `dias_entrega` solo existe para pedidos entregados con compra/entrega válidas y duración no negativa; usa segundos/86400, sin truncar.
-9. Puntualidad por **día calendario**: entregar el mismo día prometido no cuenta como retraso. `entrega_tardia` es nulo cuando no es evaluable. Esta definición puede diferir del 8,11 % de la vista de demostración, que compara timestamps.
+9. Puntualidad por **día calendario**: entregar el mismo día prometido no cuenta como retraso. `entrega_tardia` es nulo cuando no es evaluable. El KPI conectado a la preparación usa esa definición y su denominador de entregas evaluables.
 10. La distancia se calcula por ítem mediante Haversine sobre medianas postales; no representa la ruta real. Coordenadas ausentes producen distancia nula, nunca cero imputado.
 
 ## Calidad antes y después

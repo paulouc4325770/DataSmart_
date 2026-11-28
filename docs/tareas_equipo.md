@@ -1,5 +1,10 @@
 # Tareas pendientes del equipo — DataSmart
 
+> **Nota de vigencia:** este archivo es un snapshot histórico de asignaciones. Sus
+> casillas y estados no reflejan la implementación integrada actual de Semana 16.
+> Consultar `README.md`, los artefactos de `resultados/` y sus metadatos para el
+> estado ejecutado; las secciones siguientes se conservan como contexto del equipo.
+
 ## Objetivo
 
 Completar los entregables de las semanas 7, 10 y 13 antes del martes,

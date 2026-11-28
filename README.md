@@ -148,8 +148,11 @@ python src/asociacion.py
 # 4. Asociación complementaria: solo cestas con dos o más categorías.
 python src/asociacion.py --poblacion multicategoria
 
-# 5. Segmentación RFM y comparación de K-Means k=2..6.
+# 5. Segmentación RFM: K-Means k=2..6 y DBSCAN sobre muestra fija.
 python src/clustering.py
+
+# Alternativa: generar solo DBSCAN sin tocar las salidas existentes de K-Means.
+python src/clustering.py --solo-dbscan
 
 # 6. Red bipartita vendedor-producto y métricas de grafos.
 python src/grafos.py
@@ -160,14 +163,28 @@ python src/series_temporales.py
 # 8. Regresión de días de entrega: baseline, Ridge y Random Forest.
 python src/regresion.py
 
-# 9. Consolidación de las métricas de los análisis anteriores.
+# 9. Clasificación de sentimiento textual supervisada (score como proxy).
+python src/clasificacion_resenas.py
+
+# 10. NLP descriptivo: TF-IDF, términos, coocurrencias y polaridad léxica.
+python src/nlp_resenas.py
+
+# 11. Explicabilidad del Logistic Regression TF-IDF recién entrenado.
+python src/explicabilidad_resenas.py
+
+# 12. Monitoreo retrospectivo de la versión de clasificación.
+python src/monitoreo_modelos.py
+
+# 13. Consolidación de todos los artefactos disponibles.
 python src/consolidar_evaluacion.py
 ```
 
-**Dependencias entre pasos:** EDA y preparación leen el ZIP original. Asociación,
-clustering, grafos, series y regresión consumen las tablas de la preparación.
-La consolidación debe ejecutarse al final para incluir los resultados disponibles
-de todas las familias; omite los archivos de entrada que no encuentre.
+**Dependencias entre pasos:** EDA, preparación, clasificación y NLP leen el ZIP
+original. Asociación, clustering, grafos, series y regresión consumen tablas
+procesadas. Explicabilidad y monitoreo requieren ejecutar antes
+`src/clasificacion_resenas.py`. Para regenerar DBSCAN sin modificar K-Means,
+usa solo `python src/clustering.py --solo-dbscan`. La consolidación va al final
+e incluye las familias cuyos archivos estén disponibles.
 
 Los comandos vuelven a generar sus salidas en `resultados/` y, en el caso de la
 preparación, en `data/processed/` y `docs/preparacion_y_calidad.md`. Clustering y
@@ -181,11 +198,15 @@ la preparación; no es un paso adicional de ejecución.
 |---|---|
 | EDA | `resultados/resumen_tablas.csv`, `diccionario_perfilado.csv`, `indicadores_kpi.csv`, `ventas_mensuales.csv` y tres PNG en `resultados/graficos/`. |
 | Preparación | `data/processed/pedidos_procesados.csv`, `items_procesados.csv`, `geolocalizacion_agrupada.csv`; auditoría en `resultados/calidad/`; diccionarios en `resultados/`. |
-| Asociación | `resultados/reglas_asociacion.csv`, `reglas_asociacion_trazabilidad.csv`, `comparacion_asociacion.csv`, `umbrales_asociacion.csv`, `composicion_cestas.csv` y `asociacion_metadata.json`. La variante complementaria utiliza el sufijo `_multicategoria` en las salidas de su población. |
-| Clustering | `resultados/clientes_clusters.csv`, `perfiles_clusters.csv`, `evaluacion_clustering.csv`, `rfm_distribuciones.csv`, `clustering_metadata.json`, `clustering_resumen.md` y gráficos. |
+| Asociación | Apriori, FP-Growth y ECLAT comparados en `resultados/comparacion_asociacion.csv`, además de reglas, trazabilidad, umbrales y metadata. La variante complementaria usa `_multicategoria`. |
+| Clustering | K-Means y DBSCAN muestral. DBSCAN escribe `perfiles_clusters_dbscan.csv`, `evaluacion_clustering_dbscan.csv` y metadata; `--solo-dbscan` preserva los resultados de K-Means. |
 | Grafos | `resultados/grafo_aristas.csv`, `grafo_metricas.csv`, `grafo_componentes.csv`, `grafos_metadata.json`, `grafos_resumen.md` y gráficos. |
 | Series temporales | `resultados/pronosticos_ventas.csv`, `evaluacion_series.csv`, `series_temporales_metadata.json` y `resultados/graficos/series_temporales_prediccion.png`. |
 | Regresión | `resultados/predicciones_entrega.csv`, `evaluacion_regresion.csv`, `regresion_metadata.json` y dos gráficos en `resultados/graficos/`. |
+| Clasificación | `evaluacion_clasificacion.csv`, `predicciones_clasificacion.csv`, `clasificacion_metadata.json`; el Pipeline joblib queda bajo `data/processed/modelos/` (ignorado por Git). |
+| NLP | `nlp_terminos_frecuentes.csv`, `nlp_coocurrencias.csv`, `nlp_sentimientos.csv`, `nlp_metadata.json`. |
+| Explicabilidad | `importancia_variables.csv`, `explicaciones_locales.csv`, `explicabilidad_metadata.json`. Contribuciones a logits lineales, no SHAP. |
+| Monitoreo | `monitoring_metrics.csv`, `data_drift_report.csv`, `model_history.csv`, `audit_log.csv` y `model_registry.json`; retrospectivo, no tiempo real. |
 | Consolidación | `resultados/evaluacion_comparativa.csv` y `evaluacion_comparativa_resumen.json`. |
 
 En las tablas procesadas, cada fila representa un pedido, un ítem o un prefijo
@@ -217,6 +238,11 @@ de nuevo el mismo comando.
 | `http://localhost:8080/` | Plataforma web: dashboard, calidad, diccionario, modelos y hoja de ruta. |
 | `http://localhost:8080/api/resultados` | Indicadores, resúmenes y diccionario generados por Python. |
 | `http://localhost:8080/api/asociacion` | Reglas reales, comparación, poblaciones y pedidos de trazabilidad. |
+| `http://localhost:8080/api/clustering` | Perfiles, evaluación y metadatos RFM reales. |
+| `http://localhost:8080/api/series` | Ventas, pronósticos y evaluación temporal disponibles. |
+| `http://localhost:8080/api/grafos` | Subgrafo, métricas y componentes reales (tablas acotadas). |
+| `http://localhost:8080/api/regresion` | Evaluación y muestra acotada de predicciones de entrega. |
+| `/api/clasificacion`, `/api/nlp`, `/api/explicabilidad`, `/api/monitoring`, `/api/modelos` | Métricas y artefactos generados; los módulos sin salida responden `sin_resultados`. |
 | `http://localhost:8080/resultados/graficos/01_pedidos_por_estado.png` | Ejemplo de gráfico generado servido por la web. |
 
 La interfaz utiliza un **único tema claro**, con petróleo, rosa, terracota,
@@ -226,22 +252,29 @@ los cambios del servidor Python requieren reiniciarlo.
 
 ### Qué resultados carga actualmente la web
 
-- La pestaña **Asociación** carga los resultados reales desde la API y permite
-  consultar la población, las métricas y los pedidos que sustentan cada regla.
-- Los KPI compatibles se actualizan desde `/api/resultados`; las otras vistas
-  conservan parte de sus datos de presentación en `frontend/src/data/olistData.js`.
+- Asociación, perfiles RFM, evaluación temporal, regresión y subgrafo cargan
+  salidas reales desde la API. El dashboard usa KPI y ventas disponibles en `/api/resultados`.
+- Calidad y diccionario se perfilan desde CSV/JSON de preparación; muestran un
+  estado de respaldo local cuando la API o esos artefactos no están disponibles.
+- El subgrafo se sirve solo si `run_id`, SHA-256, timestamp y conteos concilian
+  con `grafos_metadata.json`; los archivos heredados se marcan como parciales.
+- Clasificación presenta métricas de test cronológico con etiquetas proxy de `review_score`;
+  NLP diferencia esas etiquetas de la polaridad léxica obtenida desde el comentario.
+- Explicabilidad usa coeficientes y contribuciones locales del Logistic Regression real;
+  no afirma calcular SHAP. Monitoreo compara train/test históricos y no es tiempo real.
 - La galería del dashboard muestra los tres PNG generados por `src/eda_olist.py`.
-- Los laboratorios de RFM, pronóstico, SHAP, NLP y el grafo interactivo siguen
-  mostrando datos de demostración. Ejecutar los scripts genera los resultados
-  reales en disco; esos laboratorios todavía requieren su integración con ellos.
+- Los paneles pendientes muestran estado explícito; las métricas faltantes no se
+  rellenan con valores de demostración. Algunos datos EDA históricos locales se
+  conservan como respaldo cuando la API no está disponible.
 
 ### Vite — desarrollo de la interfaz con Node.js
 
 Con Node.js y npm instalados, estos comandos también se ejecutan desde la raíz:
 
 ```bash
-npm --prefix frontend install
-npm --prefix frontend run dev
+cd frontend
+npm ci
+npm run dev
 ```
 
 Abrir **[http://localhost:5173](http://localhost:5173)**. Vite ofrece recarga de

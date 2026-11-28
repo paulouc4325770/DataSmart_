@@ -1,0 +1,78 @@
+{
+  "tecnica": "NLP descriptivo de reseñas Olist",
+  "resenas_entrada": 99224,
+  "resenas_con_texto_util": 40827,
+  "resenas_texto_vacio_o_nulo": 58397,
+  "distribucion_idioma_heuristico": {
+    "portugues_probable": 30907,
+    "idioma_incierto": 9920
+  },
+  "representacion": {
+    "tipo": "TF-IDF",
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 3,
+    "max_features": 30000,
+    "stopwords": "lista portuguesa incluida en el módulo"
+  },
+  "sentimiento_score": "Etiquetas de referencia: 1-2 negativo, 3 neutral, 4-5 positivo.",
+  "sentimiento_lexico": {
+    "metodo": "Diferencia de conteos de vocabulario portugués positivo y negativo; empate=neutral.",
+    "positivo": [
+      "adorei",
+      "amei",
+      "atencioso",
+      "boa",
+      "bom",
+      "bonito",
+      "eficiente",
+      "excelente",
+      "feliz",
+      "funciona",
+      "gostei",
+      "lindo",
+      "maravilhoso",
+      "otimo",
+      "perfeito",
+      "qualidade",
+      "rapido",
+      "recomendo",
+      "satisfeito",
+      "vale"
+    ],
+    "negativo": [
+      "atrasado",
+      "atraso",
+      "cancelado",
+      "decepcionado",
+      "defeito",
+      "demora",
+      "demorou",
+      "errado",
+      "falha",
+      "faltou",
+      "horrivel",
+      "insatisfeito",
+      "nao",
+      "nunca",
+      "pessimo",
+      "problema",
+      "quebrado",
+      "ruim",
+      "terrivel"
+    ]
+  },
+  "idioma": "Heurística de palabras funcionales portuguesas; no es un detector estadístico de idioma.",
+  "limitaciones": [
+    "El léxico no modela negación, ironía ni contexto y su vocabulario es limitado.",
+    "El TF-IDF describe términos por etiquetas de puntuación; no demuestra causalidad ni tópicos latentes.",
+    "Sentimiento calculado desde texto y sentimiento derivado de review_score son medidas distintas."
+  ],
+  "ejecutado_en_utc": "2026-11-27T18:00:06.041246+00:00",
+  "archivo_origen": "C:\\UNMSM\\DataSmart\\DataSmart_\\data\\raw\\archive.zip",
+  "archivo_csv": "olist_order_reviews_dataset.csv",
+  "sha256_origen": "967e41e04fc306fe604e2a693f488995a8b41e5047418f8a5c8e4abd6deca784",
+  "top_n_terminos_por_clase": 30
+}
